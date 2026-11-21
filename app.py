@@ -8,6 +8,8 @@
 """
 import asyncio
 import logging
+import ipaddress
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, HTMLResponse
@@ -20,7 +22,7 @@ import config
 import rag
 import ui_service
 
-app = FastAPI(title="서울시 조례 Q&A")
+app = FastAPI(title="AI 주거 도우미")
 log = logging.getLogger("uvicorn.error")
 _request_semaphore = asyncio.Semaphore(max(1, config.SERVER_MAX_CONCURRENCY))
 
@@ -42,10 +44,10 @@ def _valid_question(value):
 
 @app.get("/", response_class=HTMLResponse)
 def home():
-    """시민용 질문 화면. 없으면 간단한 안내를 돌려준다."""
-    if WEB_INDEX.exists():
-        return FileResponse(WEB_INDEX)
-    return HTMLResponse("<h1>서울시 조례 Q&A</h1><p>POST /ask 로 질문하세요.</p>")
+    """Default product UI: standalone AI housing assistant."""
+    if HOUSING_INDEX.exists():
+        return FileResponse(HOUSING_INDEX)
+    return HTMLResponse("<h1>AI 주거 도우미</h1><p>주거지원 안내를 준비 중입니다.</p>")
 
 
 @app.get("/agent", response_class=HTMLResponse)
@@ -55,13 +57,61 @@ def agent_page():
 
 @app.get("/housing", response_class=HTMLResponse)
 def housing_page():
-    """주거지원 시연 UI. 대회 채점 화면/API와 독립된 시민용 도구입니다."""
+    """Compatibility URL for the standalone housing assistant."""
     return FileResponse(HOUSING_INDEX)
+
+
+def _local_ui_request(req: Request):
+    """API credentials are accepted only from a browser on the local machine."""
+    try:
+        client_ip = ipaddress.ip_address(req.client.host if req.client else "")
+        if getattr(client_ip, "ipv4_mapped", None):
+            client_ip = client_ip.ipv4_mapped
+        if not client_ip.is_loopback:
+            return False
+        host = req.headers.get("host", "").split(":", 1)[0].strip("[]").lower()
+        if host not in {"localhost", "127.0.0.1", "::1"}:
+            return False
+        origin = req.headers.get("origin")
+        if origin:
+            origin_host = (urlsplit(origin).hostname or "").lower()
+            if origin_host not in {"localhost", "127.0.0.1", "::1"}:
+                return False
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+@app.get("/ui/housing/status")
+def housing_status(req: Request):
+    if not _local_ui_request(req):
+        return {"local_only": True, "upstage_configured": False, "law_configured": False}
+    import housing_service
+    return housing_service.connection_status()
+
+
+@app.post("/ui/housing/connect")
+async def housing_connect(req: Request):
+    if not _local_ui_request(req):
+        return {"error": "API 설정은 이 컴퓨터의 localhost 화면에서만 할 수 있습니다."}
+    try:
+        body = await req.json()
+        if not isinstance(body, dict):
+            return {"error": "API 설정 값을 확인해 주세요."}
+        import housing_service
+        return await asyncio.to_thread(housing_service.connect_apis,
+                                       str(body.get("upstage_api_key", "")).strip(),
+                                       str(body.get("law_oc", "")).strip())
+    except Exception as exc:  # noqa: BLE001
+        log.warning("housing API connection setup failed: %s", type(exc).__name__)
+        return {"error": "API 연결을 확인하지 못했습니다. 키와 OC 값을 다시 확인해 주세요."}
 
 
 @app.post("/ui/housing/ask")
 async def housing_ask(req: Request):
     """Separate housing-support flow using Solar and live official law API references."""
+    if not _local_ui_request(req):
+        return {"error": "주거 상담 API는 이 컴퓨터의 localhost에서 사용할 수 있습니다.", "answer": ""}
     try:
         body = await req.json()
         question = body.get("question") if isinstance(body, dict) else None

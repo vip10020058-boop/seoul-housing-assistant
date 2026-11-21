@@ -15,7 +15,12 @@ _api_semaphore = threading.BoundedSemaphore(max(1, config.API_MAX_CONCURRENCY))
 _client_lock = threading.Lock()
 
 
-def client():
+def client(api_key=None):
+    # A housing-session key is kept in memory and must not replace the competition .env client.
+    if api_key and api_key != config.UPSTAGE_API_KEY:
+        from openai import OpenAI
+        return OpenAI(api_key=api_key, base_url=config.UPSTAGE_BASE_URL,
+                      timeout=config.API_TIMEOUT_SEC, max_retries=0)
     global _client
     if _client is None:
         with _client_lock:
@@ -54,13 +59,16 @@ def _retry(fn, tries=None):
             time.sleep(max(0.0, min(delay, config.API_RETRY_MAX_DELAY_SEC)))
 
 
-def chat(messages, response_format=None, temperature=0.0, reasoning_effort=None):
+def chat(messages, response_format=None, temperature=0.0, reasoning_effort=None, api_key=None, max_tokens=None):
     kw = dict(model=config.CHAT_MODEL, messages=messages, temperature=temperature)
     if response_format:
         kw["response_format"] = response_format
     if reasoning_effort:                      # solar-pro4: 생략하면 추론 OFF, "low" 이상이면 ON
         kw["reasoning_effort"] = reasoning_effort
-    resp = _retry(lambda: client().chat.completions.create(**kw))
+    if max_tokens is not None:
+        kw["max_tokens"] = max_tokens
+    api_client = client(api_key=api_key)
+    resp = _retry(lambda: api_client.chat.completions.create(**kw))
     return resp.choices[0].message.content
 
 
