@@ -103,7 +103,7 @@ def hug_default_debtors(api_key, query=""):
     if len(term) < 2:
         return {"error": "이름 또는 주소를 두 글자 이상 입력해 주세요."}
     response = requests.get("https://www.khug.or.kr/defaultOnDebitList.do",
-                            params={"API_KEY": api_key}, timeout=(5, 20))
+                            params={"API_KEY": unquote(api_key)}, timeout=(5, 20))
     response.raise_for_status()
     data = response.json()
     records = _public_record_list(data)

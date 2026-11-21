@@ -5,9 +5,11 @@ import housing_service as housing
 
 def test_hug_public_fields_and_error_fallback(monkeypatch):
     rows = [{"CUST_NM": "예시 임대인", "ADDR": "서울 마포구 예시로", "STDD_DT": "20261101"}]
-    monkeypatch.setattr(housing.config, "HUG_API_KEY", "fixture-key")
-    monkeypatch.setattr(housing.requests, "get",
-                        lambda *args, **kwargs: SimpleNamespace(json=lambda: rows, raise_for_status=lambda: None))
+    monkeypatch.setattr(housing.config, "HUG_API_KEY", "test%2Bkey%3D")
+    def response(*args, **kwargs):
+        assert kwargs["params"]["API_KEY"] == "test+key="
+        return SimpleNamespace(json=lambda: rows, raise_for_status=lambda: None)
+    monkeypatch.setattr(housing.requests, "get", response)
     result = housing.answer({"mode": "hug", "landlord_query": "마포구"})
     assert result["records"][0]["region"] == "서울 마포구"
     assert result["records"][0]["basis_date"] == "2026-11-01"
