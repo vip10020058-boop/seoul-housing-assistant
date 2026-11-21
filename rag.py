@@ -198,12 +198,17 @@ def _specific_penalty_has_basis(question, hits):
     terms = [aliases for pattern, aliases in _PENALTY_SUBJECTS if re.search(pattern, question)]
     if not terms:
         return True  # Unknown concepts: leave decision to evidence-based verifier.
+    return bool(_direct_penalty_hits(terms, hits))
+
+
+def _direct_penalty_hits(terms, hits):
+    """Find clauses sharing both the requested conduct and the penalty wording."""
+    matches = []
     for hit in hits:
-        body = hit.get("text", "")
-        # A direct provision can delegate a penalty without prescribing an amount.
+        body = hit["text"]
         if re.search(r"과태료|벌금", body) and all(any(alias in body for alias in group) for group in terms):
-            return True
-    return False
+            matches.append(hit)
+    return matches
 
 
 def _is_compound_question(question):
@@ -303,9 +308,11 @@ SYSTEM = """너는 서울특별시 조례 질의응답 도우미다.
   (지정 기준·금액·요건 등)을 찾아 요약해 답한다. 근거에 관련 조문이 있으면 found를 true로 한다.
 - 복합질문은 질문에 포함된 조건·대상·예외·금액·절차를 각각 확인하고, 한 조건의 답으로 다른 조건까지 추정하지 않는다.
   근거가 확보된 조건은 답하고, 근거가 없는 조건은 "해당 조건은 근거에서 확인 불가"라고 명시한다.
-- 답은 일반 시민이 이해할 수 있는 쉬운 말로 작성한다. 단일 질문은 2~4문장, 복합질문은 조건별 짧은 목록을 허용한다.
-  금액·비율·나이 같은 숫자는 그대로 쓴다. 조건을 묻는 질문은 "네/아니요"로 시작하고,
-  '다만·예외' 같은 단서가 있으면 함께 적는다.
+- 답은 질문에 필요한 핵심과 적용 조건을 쉬운 말로 작성한다. 단일 질문은 1~3문장,
+  복합질문은 조건별 짧은 목록을 허용한다. 금액·비율·나이는 그대로 쓰고,
+  조문에 명시된 단서는 함께 적는다. 질문과 무관한 절차·예외 및 근거에 없는 설명은 생략한다.
+- 과태료가 명시되면 적용 행위와 금액을 함께 적는다. 범위를 묻지 않았다면
+  다른 구역의 기준이나 조문에 적히지 않은 단속 절차를 덧붙이지 않는다.
 - 답에 실제로 쓴 근거의 번호만 evidence_ids에 넣는다. 읽기만 하고 답에 안 쓴 근거는 넣지 않는다.
   여러 조항을 함께 썼다면 모두 넣는다.
 - 주차장·시설 요금 질문에서 본문 조항이 '원칙 무료, 예외적인 유료 운영은 별표 범위'로 정하면
@@ -610,6 +617,46 @@ def _annex_numbers(text):
     return {int(x.replace(",", "")) for x in _NUMBER_TOKEN.findall(text)}
 
 
+_FEE_QUESTION = re.compile(r"요금|얼마|돈\s*(?:을\s*)?내|비용|무료|유료|입장료|사용료|이용료")
+_FEE_TERM = re.compile(r"주차요금|이용요금|사용료|이용료|입장료|수수료")
+
+
+def _free_fee_pairs(question, hits, law_names):
+    """Find a free-use provision and each annex it explicitly links for exceptions."""
+    if not _FEE_QUESTION.search(question):
+        return []
+    candidates = []
+    for clause in hits:
+        law = clause.get("law")
+        if law not in law_names or "별표" in clause["label"]:
+            continue
+        body = clause["text"]
+        if not ("무료" in body and "별표" in body and _FEE_TERM.search(body)
+                and re.search(r"부과|징수|받을 수|유료", body)):
+            continue
+        if "자전거" in question and "자전거" not in body + law:
+            continue
+        for ref in re.finditer(r"별표(?:\s*(\d+(?:의\d+)?))?", body):
+            suffix = f" {ref[1]}" if ref[1] else ""
+            label = f"{law} 별표{suffix}"
+            candidates.extend((clause, annex) for annex in hits if annex["label"] == label)
+    return candidates
+
+
+def _focused_evidence(question, hits):
+    """Prioritize direct legal evidence when a special amount question needs a shorter context."""
+    if re.search(r"과태료|벌금", question) and re.search(r"얼마|금액|몇\s*원", question):
+        terms = [aliases for pattern, aliases in _PENALTY_SUBJECTS if re.search(pattern, question)]
+        if terms:
+            penalties = _direct_penalty_hits(terms, hits)
+            return [hit for hit in penalties if _amounts_in_answer(hit["text"])][:3]
+    laws = {hit["law"] for hit in hits if hit.get("law")}
+    fee_pairs = _free_fee_pairs(question, hits, laws)
+    if len(fee_pairs) == 1:
+        return list(fee_pairs[0])
+    return []
+
+
 def _reconcile_free_fee_evidence(question, answer, used, hits):
     """Pair a free-by-default fee rule with its *source-backed* rate table.
 
@@ -618,43 +665,15 @@ def _reconcile_free_fee_evidence(question, answer, used, hits):
     Matching the explicit '별표' reference, same ordinance, and all quoted amounts
     is stronger than simply selecting a semantically similar parking clause.
     """
-    if not used or not re.search(r"무료|무상", answer) or not re.search(
-        r"주차|요금|사용료|이용료|비용|돈을|유료|얼마", question
-    ):
+    if not used or not re.search(r"무료|무상", answer):
         return used
     amounts = _amounts_in_answer(answer)
     if not amounts:
         return used
-    question_nospace = re.sub(r"\s+", "", question)
     # Keep the law family from grounded original retrieval, not from a user-generated citation.
     law_names = {h.get("law") for h in hits if h.get("law")}
-    candidates = []
-    for clause in hits:
-        body = clause.get("text", "")
-        law = clause.get("law")
-        if not law or law not in law_names or DISTRICT.search(clause.get("label", "")):
-            continue
-        if re.search(r"별표\s*\d*$", clause.get("label", "")):
-            continue
-        # Require the actual local provision to state BOTH the free principle
-        # and that an exceptional fee may be collected within an annex table.
-        if not ("무료" in body and "별표" in body
-                and re.search(r"주차요금|이용요금|사용료|이용료", body)
-                and re.search(r"부과|징수|받을 수|유료", body)):
-            continue
-        # Query topic must explicitly match the article, not an unrelated law.
-        if "자전거" in question_nospace and "자전거" not in body + law:
-            continue
-        numbers = [m.group(1) or "" for m in re.finditer(r"별표\s*(\d*)", body)]
-        for refnum in numbers:
-            expected = f"{law} 별표{(' ' + refnum) if refnum else ''}"
-            for annex in hits:
-                if annex.get("label") != expected or annex.get("law") != law:
-                    continue
-                if amounts <= _annex_numbers(annex.get("text", "")):
-                    # The provision + table are sufficient evidence for free
-                    # and its quoted exceptional prices. Avoid citation padding.
-                    candidates.append((clause, annex))
+    candidates = [(clause, annex) for clause, annex in _free_fee_pairs(question, hits, law_names)
+                  if amounts <= _annex_numbers(annex["text"])]
     if not candidates:
         return used
     # A law-scoped article/table pair can appear several times if the table is chunked.
@@ -685,7 +704,6 @@ def answer_detailed(question):
 
     `answer()`는 이 함수의 response만 반환하므로 대회 4필드 계약은 바뀌지 않습니다.
     """
-    import upstage
     question = str(question).strip()[:config.MAX_QUESTION_LENGTH]
     if not question or _out_of_scope(question):
         return _detail(dict(UNKNOWN), "unavailable", unknown_reason="out_of_scope_or_empty")
@@ -694,6 +712,20 @@ def answer_detailed(question):
         return _detail(dict(UNKNOWN), "unavailable", unknown_reason="no_hits")
     if not _specific_penalty_has_basis(question, hits):
         return _detail(dict(UNKNOWN), "unavailable", unknown_reason="penalty_without_direct_provision")
+
+    focused = _focused_evidence(question, hits)
+    result = _generate_answer(question, hits)
+    if not result["unknown_reason"] or not focused:
+        return result
+
+    # Regenerate only when direct evidence was located. Unlike a verifier
+    # override, the second draft still must pass the same grounding check.
+    log.info("Retrying known provision or annex evidence (%s)", result["unknown_reason"])
+    return _generate_answer(question, focused, focused_retry=True)
+
+
+def _generate_answer(question, hits, *, focused_retry=False):
+    import upstage
 
     # 중복(둘 다/함께) 질문이고 검색에 '중복 적용 제한' 조항이 있으면, LLM이 그 조항을 놓치거나
     # 반대로 답하지 않도록 질문 끝에 명시적 지시를 덧붙인다(근거 자체는 [근거]에 이미 들어 있다).
@@ -704,8 +736,17 @@ def answer_detailed(question):
                 "반영해, 중복해서 받을 수 없고 감면율이 높은 하나만 적용된다고 답하고 그 조항 "
                 "번호를 evidence_ids에 포함하라.")
 
+    system = SYSTEM
+    if focused_retry:
+        system += (
+            "\n다음은 질문의 행위와 금액 또는 요금 별표가 담긴 조문만 다시 추린 결과다. "
+            "직접 일치하는 적용 조건과 금액이 있으면 1~2문장으로 답한다. "
+            "별표 금액은 표의 단위와 행·열 제목을 정확히 붙여 그대로 옮긴다. "
+            "예외 요금은 적용 조건을 함께 밝혀야 한다. 근거 밖 설명은 한 문장도 덧붙이지 않는다. "
+            "조항과 별표를 둘 다 썼으면 근거 번호를 각각 반환한다."
+        )
     raw = upstage.chat(
-        [{"role": "system", "content": SYSTEM},
+        [{"role": "system", "content": system},
          {"role": "user", "content": f"[근거]\n{_context(hits)}\n\n[질문]\n{question}{hint}"}],
         response_format=SCHEMA, max_tokens=1100)
     try:

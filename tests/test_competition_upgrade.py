@@ -156,3 +156,38 @@ def test_delegate_specific_details_and_cite_the_seoul_clause(monkeypatch):
     response = rag.answer(question)
     assert response["citation"] == [clause]
     assert check.validate_response(response) == []
+
+
+@pytest.mark.parametrize("sample_id", ["S2", "M3"])
+def test_rejected_amount_answer_is_rewritten_from_focused_evidence(monkeypatch, sample_id):
+    import upstage
+
+    items = json.loads((config.ROOT / "sample_questions.json").read_text(encoding="utf-8"))
+    sample = next(item for item in items if item["id"] == sample_id)
+    hits = rag._merged_retrieve(sample["question"])
+    focused = rag._focused_evidence(sample["question"], hits)
+    assert all(any(choice == hit["label"] for choice in choices for hit in focused) for choices in sample["gold"])
+    monkeypatch.setattr(rag, "_merged_retrieve", lambda _: hits)
+    focused_ids = [hits.index(hit) + 1 for hit in focused]
+    replies = iter([
+        {"found": True, "answer": "조례에 따르면 금액은 900,000원입니다.", "evidence_ids": focused_ids},
+        {"found": True, "answer": sample["answer_key"], "evidence_ids": list(range(1, len(focused) + 1))},
+    ])
+    prompts = []
+
+    def generate(messages, **kwargs):
+        prompts.append(messages[1]["content"])
+        return json.dumps(next(replies))
+
+    contexts = []
+
+    def verify(context, answer):
+        contexts.append(context)
+        return "notGrounded" if "900,000원" in answer else "grounded"
+
+    monkeypatch.setattr(upstage, "chat", generate)
+    monkeypatch.setattr(upstage, "groundedness", verify)
+    response = rag.answer(sample["question"])
+    assert len(prompts) == len(contexts) == 2
+    assert prompts[1].count("[근거 ") == len(focused)
+    assert check.score_citation(response["citation"], sample["gold"]) == 1.0
