@@ -1,4 +1,3 @@
-
 """AI 서울 주거도우미 서버.
 
 실행:  uvicorn app:app --host 0.0.0.0 --port 8000
@@ -21,7 +20,6 @@ app = FastAPI(title="AI 주거 도우미")
 log = logging.getLogger("uvicorn.error")
 _request_semaphore = asyncio.Semaphore(max(1, config.SERVER_MAX_CONCURRENCY))
 
-WEB_INDEX = config.ROOT / "web" / "index.html"
 HOUSING_INDEX = config.ROOT / "web" / "housing.html"
 
 
@@ -51,21 +49,6 @@ def housing_page():
 def housing_status():
     import housing_service
     return housing_service.connection_status()
-
-
-@app.post("/ui/housing/connect")
-async def housing_connect(req: Request):
-    try:
-        body = await req.json()
-        if not isinstance(body, dict):
-            return {"error": "API 설정 값을 확인해 주세요."}
-        import housing_service
-        return await asyncio.to_thread(housing_service.connect_apis,
-                                       str(body.get("upstage_api_key", "")).strip(),
-                                       str(body.get("law_oc", "")).strip())
-    except Exception as exc:  # noqa: BLE001
-        log.warning("housing API connection setup failed: %s", type(exc).__name__)
-        return {"error": "API 연결을 확인하지 못했습니다. 키와 OC 값을 다시 확인해 주세요."}
 
 
 @app.post("/ui/housing/ask")

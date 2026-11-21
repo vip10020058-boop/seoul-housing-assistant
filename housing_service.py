@@ -1,4 +1,4 @@
-"""시민용 서울 청년월세지원 안내. 대회 채점 경로(rag.answer, /ask)와 분리됩니다.
+"""서울시 조례와 주거지원 공고를 구분해 안내하는 시민용 도우미.
 
 LLM: 기존 Upstage Solar API. 법령: 법제처 OPEN API에서 조례/법률을 조회합니다.
 사업 공고 수치는 서울시 2026 모집공고(공고 제2026-1440호) 스냅샷을 사용하고,
@@ -19,6 +19,22 @@ log = logging.getLogger(__name__)
 SEARCH_URL = "https://www.law.go.kr/DRF/lawSearch.do"
 SERVICE_URL = "https://www.law.go.kr/DRF/lawService.do"
 ORDINANCE_NAME = "서울특별시 청년주거 기본 조례"
+SEOUL_ORDINANCE_TOPICS = {
+    "parking": ("주차", "주차장", "주차요금", "주차구역", "거주자우선"),
+    "animal": ("반려동물", "유기견", "동물", "맹견", "동물등록"),
+    "bike": ("자전거", "자전거도로", "자전거주차"),
+    "park": ("공원", "공원음주", "공원에서", "공원시설"),
+    "smoking": ("흡연", "담배", "금연", "간접흡연"),
+}
+ORDINANCE_TITLES = {
+    "parking": "서울특별시 주차장 설치 및 관리 조례",
+    "animal": "서울특별시 동물보호 조례",
+    "bike": "서울특별시 자전거이용 활성화에 관한 조례",
+    "park": "서울특별시 도시공원 조례",
+    "smoking": "서울특별시 금연환경 조성 및 간접흡연 피해방지조례",
+    "youth": ORDINANCE_NAME,
+}
+YOUTH_ORDINANCE_TITLE = "서울특별시 청년 기본 조례"
 NOTICE_URL = "https://soco.seoul.go.kr/bos/cmmn/file/fileDown.do?atchFileId=d964a2a457e3421c95f8b3de69846c99&bbsId=&fileSn=1&menuNo=400018"
 PROGRAM_URL = "https://soco.seoul.go.kr/youth/bbs/BMSR00174/view.do?boardId=6734&menuNo=400043&pageIndex=1"
 LH_NOTICE_URL = "https://www.data.go.kr/data/15058530/openapi.do"
@@ -133,31 +149,10 @@ def _molit_rents(api_key, district="마포구", months=3):
 
 def connection_status():
     return {"upstage_configured": bool(config.UPSTAGE_API_KEY),
-            "law_configured": bool(config.LAW_OC and config.LAW_OC != "test")}
+            "law_configured": bool(config.LAW_OC and config.LAW_OC != "test"),
+            "public_data_configured": bool(config.PUBLIC_DATA_API_KEY),
+            "hug_configured": bool(config.HUG_API_KEY)}
 
-
-def connect_apis(api_key, law_oc):
-    """Validate credentials without retaining them on the server."""
-    if not api_key or len(api_key) > 512 or not law_oc or len(law_oc) > 128:
-        return {"error": "Upstage API 키와 법제처 OC를 모두 입력해 주세요."}
-    try:
-        upstage.chat([{"role": "user", "content": "Reply with OK."}],
-                     api_key=api_key, max_tokens=8)
-    except Exception as exc:  # Never log or return credential-bearing request details.
-        log.warning("housing Upstage validation failed: %s", type(exc).__name__)
-        return {"error": "Upstage API 연결에 실패했습니다. API 키와 사용 권한을 확인해 주세요."}
-    try:
-        response = requests.get(SEARCH_URL, params={"OC": law_oc, "target": "ordin", "type": "XML",
-                               "query": ORDINANCE_NAME, "org": "6110000", "nw": 1, "display": 1},
-                               timeout=(4, 14))
-        response.raise_for_status()
-        ET.fromstring(response.content)
-    except Exception as exc:
-        log.warning("housing law API validation failed: %s", type(exc).__name__)
-        return {"error": "법제처 API 연결에 실패했습니다. OC 값을 확인해 주세요."}
-    # Credentials are deliberately not retained by the server. The browser keeps
-    # them only in tab memory and sends them again with each housing request.
-    return {"ok": True, "upstage_configured": True, "law_configured": True}
 
 # 서울시 공고 제2026-1440호, 2026-04-30. 2026 회차는 2026-05-19 마감.
 NOTICE_CONTEXT = """서울시 청년월세지원 2026년 모집공고(서울특별시 공고 제2026-1440호, 2026-04-30)
@@ -255,31 +250,49 @@ def _fetch_text(target, law, law_oc=None):
         if element.tag not in ("조", "조문", "조문단위"):
             continue
         title = (element.findtext("조제목") or element.findtext("조문제목") or "").strip()
+        number = (element.findtext("조문번호") or element.findtext("조문가지번호") or "").strip()
         text = (element.findtext("조내용") or element.findtext("조문내용") or "").strip()
         relevant = r"주거|지원|사업|월세|정의|목적" if target == "ordin" else r"주택|임대차|보증금|차임|월세|전환"
         if text and (not title or re.search(relevant, title + text[:240])):
-            chunks.append((title + " " + text).strip())
+            article_number = int(number) // 100 if number.isdigit() and int(number) >= 100 else (int(number) if number.isdigit() else None)
+            sub_number = int(element.findtext("조문가지번호") or "0")
+            label = f"제{article_number}조" if article_number is not None else "조문"
+            if article_number is not None and sub_number:
+                label += f"의{sub_number}"
+            chunks.append((f"{label} {title} {text}").strip())
     return "\n".join(chunks)[:8500]
 
 
-def _law_references(law_oc=None):
+def _relevant_ordinances(mode, facts):
+    text = " ".join((facts.get("question", ""), facts.get("other", ""), mode)).lower()
+    selected = [ORDINANCE_TITLES[key] for key, words in SEOUL_ORDINANCE_TOPICS.items()
+                if any(word in text for word in words)]
+    if mode in {"support", "application", "inquiry", "recommend", "contract"}:
+        selected.insert(0, ORDINANCE_NAME)
+        if facts.get("age") is not None and facts["age"] <= 39:
+            selected.append(YOUTH_ORDINANCE_TITLE)
+    return list(dict.fromkeys(selected))[:3]
+
+
+def _law_references(mode, facts, law_oc=None):
     refs = []
     errors = []
-    try:
-        ordinance = _law_search("ordin", ORDINANCE_NAME, {ORDINANCE_NAME}, law_oc)
-        if ordinance:
-            ordinance["kind"] = "법제처 자치법규 API"
-            ordinance["excerpt"] = _fetch_text("ordin", ordinance, law_oc)
-            refs.append(ordinance)
-        else:
-            errors.append("서울특별시 청년주거 기본 조례 검색 결과 없음")
-    except Exception as exc:  # API 장애 시 시민 UI에 출처와 상태 표시
-        log.warning("housing ordinance API lookup failed: %s", type(exc).__name__)
-        errors.append("법제처 자치법규 API 조회에 실패했습니다")
+    for title in _relevant_ordinances(mode, facts):
+        try:
+            ordinance = _law_search("ordin", title, {title}, law_oc)
+            if ordinance:
+                ordinance["kind"] = "서울특별시 조례 · 법제처 자치법규 API"
+                ordinance["excerpt"] = _fetch_text("ordin", ordinance, law_oc)
+                refs.append(ordinance)
+            else:
+                errors.append(f"서울특별시 조례 검색 결과 없음: {title}")
+        except Exception as exc:
+            log.warning("housing ordinance API lookup failed: %s", type(exc).__name__)
+            errors.append(f"법제처 자치법규 API 조회 실패: {title}")
     try:
         act = _law_search("law", "주택임대차보호법", law_oc=law_oc)
         if act:
-            act["kind"] = "법제처 현행법령 API"
+            act["kind"] = "국가 법령 · 법제처 현행법령 API"
             act["excerpt"] = _fetch_text("law", act, law_oc)
             refs.append(act)
     except Exception as exc:
@@ -333,7 +346,7 @@ def _prompt(stage, facts, checks, law_refs, law_errors, public_context=""):
     )
     mode = facts["mode"]
     mode_instructions = {
-        "support": "지원 시기·자격과 다음 절차를 중심으로 답하고 draft는 빈 문자열로 둔다.",
+        "support": "지원 시기·자격과 다음 절차를 중심으로 답하고 draft는 빈 문자열로 둔다. 서울시 조례와 해당 연도 모집공고 기준을 구분한다.",
         "application": "계약 후라면 빈칸을 포함한 신청서 초안을 draft에 작성한다. 계약 전이면 draft는 빈 문자열로 둔다.",
         "inquiry": "draft에 담당 기관에 보낼 문의 문안을 작성한다. 아직 공고되지 않은 다음 일정과 필요한 증빙을 확인하는 내용으로 한다.",
         "contract": "입력한 임대차 보증금·월세의 공고상 금액 기준 비교와 확인사항을 중심으로 답한다. draft는 빈 문자열로 둔다.",
@@ -341,9 +354,11 @@ def _prompt(stage, facts, checks, law_refs, law_errors, public_context=""):
         "listings": "LH 공공임대 모집공고와 국토부 전월세 실거래 참고 자료를 구분해 안내한다. 실거래는 현재 매물이 아니며 계약 가능 매물이라고 표현하지 않는다.",
     }.get(mode, "지원 절차 안내와 필요한 자료를 설명한다.")
     return [
-        {"role": "system", "content": """너는 서울시 청년 주거지원 절차를 안내하는 시민용 AI 도우미다. 법률 자문이나 선정 확정 판정을 하지 않는다.
+        {"role": "system", "content": """너는 서울시 조례를 시민의 실제 주거 상황에 연결하는 AI 도우미다. 법률 자문이나 선정 확정 판정을 하지 않는다.
+사용자 상황과 직접 관련된 서울특별시 조례를 우선 찾아 조례에서 확인되는 제도 목적·시의 책무·지원 근거를 설명한다. 조례가 정하지 않은 신청 기간, 소득·재산 기준, 금액, 서류, 선정 절차는 조례에서 확인된 것처럼 말하지 않는다.
+답변에서 '서울시 조례에서 확인되는 내용'과 '모집공고·사업 안내에서 확인할 내용'을 반드시 구분한다. 현재 조회된 조문 원문만 조례 근거로 설명하고 해당 조례명·조문 번호·시행일·원문 링크를 제공한다. 관련 조례를 검색하지 못했거나 원문을 받지 못하면 확인 불가라고 표시한다.
 주거지원 공고의 기준·일정은 제공된 [서울시 2026 모집공고] 내용에만 근거한다. 2026 모집은 마감됐으며 2027 일정은 공고 후 안내 상태다. 미래 일정을 추측하지 않는다.
-법령에 관한 설명은 [법제처 API 결과]에 실제로 있는 내용만 사용한다. API 결과가 없거나 원문 조회가 실패하면 법령 내용은 확인하지 못했다고 표시하고 공식 링크로 안내한다. 청년월세지원 공고에 없는 조건이나 조항번호를 만들지 않는다.
+법령에 관한 설명은 [서울특별시 조례·법제처 API 결과]에 실제로 있는 내용만 사용한다. 조례/API 결과가 없거나 원문 조회가 실패하면 법령 내용을 확인하지 못했다고 표시한다. 모집공고에 없는 조건이나 조항번호를 만들지 않는다.
 공공 공고·실거래 API가 실패했거나 결과가 비어 있으면 결과를 만들어 내지 말고 조회 실패 또는 결과 없음이라고 밝힌다. 국토부 실거래는 과거 신고 계약 사례이므로 현재 매물이라고 부르지 않는다. 예산/지역에 맞는 중개 매물 자체는 이 API 결과에 포함되지 않는 한 찾았다고 주장하지 않는다.
 금액 대조는 제공된 입력 정보의 예비 계산이며 모든 신청 제외 요건·소득·재산·가구 유형·중복수혜를 검사하지 않았으므로 자격 확정이라고 말하지 않는다. 계약서가 아직 없는 사용자에게 임대차 계약을 서둘러 체결하라고 하지 않는다.
 draft는 선택 기능의 지침에 따라 필요한 경우에만 작성한다. 신청서 초안 기능은 계약 후에만, 문의 문안 기능은 언제든 초안을 만들 수 있다. 이름·주민등록번호·주소·계좌번호를 요구하지 않고, 모르는 사실은 빈칸으로 둔다. 답변은 친절하고 간결한 한국어다."""},
@@ -360,7 +375,7 @@ draft는 선택 기능의 지침에 따라 필요한 경우에만 작성한다. 
 [공식 안내 페이지 기준]
 2026-11-12 게시 정보: 2026년 모집 마감, 2027년 공고 예정. 정확한 신청 일정은 추후 공식 공고에서 확인.
 
-[법제처 API 결과]
+[서울특별시 조례·법제처 API 결과]
 {laws or 'API 검색 결과를 확보하지 못함'}
 [법제처 API 상태]
 {'; '.join(law_errors) if law_errors else '조회 완료'}
@@ -368,36 +383,37 @@ draft는 선택 기능의 지침에 따라 필요한 경우에만 작성한다. 
 [공공주거·실거래 API 조회 결과]
 {public_context or '이번 기능에서는 조회하지 않음'}
 
-JSON 결과 필드 summary, next_steps, documents, draft, caution을 채워 주세요. next_steps/documents는 배열입니다. 계약 전이면 draft는 빈 문자열로 둡니다. 조문을 언급할 경우 출처 제목을 함께 적어 주세요."""},
+JSON 결과 필드 summary, next_steps, documents, draft, caution을 채워 주세요. next_steps/documents는 배열입니다. 계약 전이면 draft는 빈 문자열로 둡니다. 조례 설명은 실제 조회된 원문에 한정하고, 조례와 공고 기준을 구획별로 분리하세요."""},
     ]
 
 
 def answer(body):
-    api_key = str(body.get("upstage_api_key") or config.UPSTAGE_API_KEY).strip()
-    law_oc = str(body.get("law_oc") or config.LAW_OC or "test").strip()
+    api_key = config.UPSTAGE_API_KEY.strip()
+    law_oc = config.LAW_OC.strip()
     mode = body.get("mode") if body.get("mode") in {"support", "application", "inquiry", "contract", "recommend", "listings", "hug", "hugstats"} else "support"
     if mode == "hugstats":
         return hug_statistics()
     if mode == "hug":
         try:
-            return hug_default_debtors(str(body.get("hug_api_key") or "").strip(), body.get("landlord_query", ""))
+            return hug_default_debtors(config.HUG_API_KEY.strip(), body.get("landlord_query", ""))
         except Exception as exc:
             log.warning("HUG public list lookup failed: %s", type(exc).__name__)
             return {"error": "HUG 공개명단 API를 조회하지 못했습니다. HUG API 키와 사용 권한을 확인해 주세요."}
     if not api_key:
-        return {"error": "화면 상단의 API 설정에서 Upstage와 법제처 API를 먼저 연결해 주세요.", "answer": "", "sources": []}
+        return {"error": "서버 환경변수 UPSTAGE_API_KEY를 설정해 주세요. 배포 환경은 Vercel 프로젝트 설정에서 추가할 수 있습니다.", "answer": "", "sources": []}
     if len(api_key) > 512 or len(law_oc) > 128:
-        return {"error": "API 설정값을 확인해 주세요.", "answer": "", "sources": []}
+        return {"error": "서버의 API 환경변수 설정을 확인해 주세요.", "answer": "", "sources": []}
     stage, facts, checks = _compare_terms(body)
     facts["mode"] = mode
     if body.get("other"):
         facts["question"] = (facts["question"] + "\n추가 질문: " + str(body["other"]).strip()[:160]).strip()
-    law_refs, law_errors = _law_references(law_oc)
+    facts["other"] = str(body.get("other") or "").strip()[:300]
+    law_refs, law_errors = _law_references(mode, facts, law_oc)
     public_context = ""
     public_sources = []
     public_data = {"lh_notices": [], "rent_records": []}
     if mode in {"recommend", "listings"}:
-        data_key = str(body.get("public_data_key") or "").strip()
+        data_key = config.PUBLIC_DATA_API_KEY.strip()
         district = str(body.get("district") or "마포구").strip()
         try:
             notices, notice_error = _lh_notices(data_key)
@@ -422,12 +438,14 @@ def answer(body):
     raw = upstage.chat(_prompt(stage, facts, checks, law_refs, law_errors, public_context), response_format=SCHEMA,
                        temperature=0.0, api_key=api_key)
     data = json.loads(raw)
-    sources = [{"type": "서울시 모집공고", "title": "2026년 서울시 청년월세지원 모집 공고 제2026-1440호", "url": NOTICE_URL, "updated": "2026-04-30"},
-               {"type": "서울시 안내", "title": "서울시 청년월세지원 안내 (2026년 모집 마감·2027년 공고 예정)", "url": PROGRAM_URL, "updated": "2026-11-12"}]
-    sources.extend({"type": x["kind"], "title": x["title"], "url": x["url"], "effective": x.get("effective", ""), "excerpt": x.get("excerpt", "")[:1600]} for x in law_refs)
-    sources.extend(public_sources)
+    ordinance_sources = [{"type": x["kind"], "title": x["title"], "url": x["url"], "effective": x.get("effective", ""), "excerpt": x.get("excerpt", "")[:2400]} for x in law_refs if "조례" in x["kind"]]
+    national_law_sources = [{"type": x["kind"], "title": x["title"], "url": x["url"], "effective": x.get("effective", ""), "excerpt": x.get("excerpt", "")[:1600]} for x in law_refs if "국가 법령" in x["kind"]]
+    announcement_sources = [{"type": "서울시 모집공고", "title": "2026년 서울시 청년월세지원 모집 공고 제2026-1440호", "url": NOTICE_URL, "updated": "2026-04-30"},
+                            {"type": "서울시 사업 안내", "title": "서울시 청년월세지원 안내 (2026년 모집 마감·2027년 공고 예정)", "url": PROGRAM_URL, "updated": "2026-11-12"}]
+    sources = announcement_sources + ordinance_sources + national_law_sources + public_sources
     return {"stage": stage, "mode": mode, "answer": data["summary"], "next_steps": data["next_steps"], "documents": data["documents"],
             "draft": data["draft"], "caution": data["caution"], "checks": checks, "sources": sources,
+            "ordinance_sources": ordinance_sources, "announcement_sources": announcement_sources,
+            "national_law_sources": national_law_sources,
             "public_data": public_data,
-            "law_api_status": "ok" if law_refs else "unavailable", "law_api_warning": "; ".join(law_errors)}
-
+            "law_api_status": "ok" if ordinance_sources else "unavailable", "law_api_warning": "; ".join(law_errors)}
