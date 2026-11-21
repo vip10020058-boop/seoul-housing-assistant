@@ -699,6 +699,89 @@ def _detail(response, verification_status, used=None, unknown_reason=""):
     }
 
 
+_DETAIL_TYPES = (
+    (r"몇\s*시|운영\s*시간|이용\s*시간|개장\s*시간|폐장\s*시간|휴무",
+     r"운영\s*시간|이용\s*시간|개장|폐장|휴무", "운영 시간"),
+    (r"정확한\s*날짜|며칠|일정|언제|시기",
+     r"날짜|일정|시기|기간", "일정"),
+    (r"감면율|할인율|몇\s*[%％]|몇\s*퍼센트",
+     r"감면율|할인율", "감면율"),
+    (r"요금|사용료|이용료|수수료|입장료|금액",
+     r"요금|사용료|이용료|수수료|입장료|금액", "금액"),
+    (r"절차|신청\s*방법|어떻게\s*신청|제출\s*서류|징수\s*방법",
+     r"절차|신청\s*방법|제출\s*서류|징수|지정\s*변경|해제", "절차"),
+)
+_DECISION_RULE = re.compile(
+    r"(?:시장이|구청장이)(?:\s+따로)?\s+정(?:한다|하여야 한다|할 수 있다)|"
+    r"(?:규칙|고시|공고)(?:으)?로\s+정(?:한다|하여야 한다|할 수 있다)"
+)
+_REFERENCE_RULE = re.compile(
+    r"(?:「[^」]+」|(?:시행)?규칙|제\d+조(?:의\d+)?|별표(?:\s*\d+)?)"
+    r"[^.!?\n]{0,32}(?:에\s*따른다|을\s*준용한다|를\s*준용한다)"
+)
+_TOPIC_CONNECTORS = {
+    "서울시", "서울특별시", "그리고", "또는", "설치", "운영", "관리", "절차", "방법",
+    "설치운영", "시설관리", "운영방법", "이용요금", "이용방법", "감면대상", "관련규정",
+}
+
+
+def _shared_subjects(title, question):
+    """Require a concrete term shared by the question and the article heading."""
+    words = re.findall(r"[가-힣A-Za-z0-9]+", title)
+    compact_question = re.sub(r"\s+", "", question)
+    subjects = {word for word in words if len(word) >= 4 and word not in _TOPIC_CONNECTORS}
+    subjects.update(left + right for left, right in zip(words, words[1:])
+                    if min(len(left), len(right)) >= 2 and left not in _TOPIC_CONNECTORS
+                    and right not in _TOPIC_CONNECTORS)
+    return {subject for subject in subjects if subject in compact_question}
+
+
+def _delegated_answer(question, hits):
+    """Quote a directly applicable delegation sentence from the pinned ordinance."""
+    requests = [detail for detail in _DETAIL_TYPES if re.search(detail[0], question)]
+    if len(requests) != 1:
+        return None
+    _, field_pattern, field_name = requests[0]
+    candidates = []
+    for hit in hits:
+        if "별표" in hit["label"]:
+            continue
+        heading = re.search(r"제\d+조(?:의\d+)?\(([^)]+)\)", hit["text"])
+        if not heading:
+            continue
+        subjects = _shared_subjects(heading[1], question)
+        if not subjects:
+            continue
+        body = hit["text"][heading.end():].lstrip("] \n")
+        body = re.sub(r"<[^>]*>|\[[^]]*\]", "", body)
+        body = re.sub(r"(?m)^\s*(?:[①-⑳]|\d+\.)\s*", "", body)
+        for sentence in re.split(r"(?<=\.)\s+|\n", body):
+            rule = sentence.strip()
+            if not (_DECISION_RULE.search(rule) or _REFERENCE_RULE.search(rule)):
+                continue
+            subject_in_rule = any(subject in re.sub(r"\s+", "", rule) for subject in subjects)
+            explicit_field = bool(re.search(field_pattern, rule))
+            operating_scope = (field_name == "운영 시간" and subject_in_rule
+                               and bool(re.search(r"설치\s*(?:및|ㆍ|·)\s*운영에\s*필요한\s*사항", rule)))
+            if explicit_field or operating_scope:
+                rank = (explicit_field, subject_in_rule, max(map(len, subjects)))
+                candidates.append((rank, hit, rule))
+    if not candidates:
+        return None
+
+    best_rank = max(candidate[0] for candidate in candidates)
+    best = {(hit["label"], rule): hit for rank, hit, rule in candidates if rank == best_rank}
+    if len(best) != 1:
+        return None
+    (label, rule), hit = next(iter(best.items()))
+    rule = rule.rstrip(".")
+    text = (f"{label}에 따르면, “{rule}”라고 되어 있습니다. "
+            f"구체적인 {field_name}은 담당 기관의 공식 안내에서 확인해 주세요.")
+    return _detail({"answer": text, "citation": [label], "source_url": hit["source_url"],
+                    "effective_date": hit["effective_date"]},
+                   "source_extracted", used=[hit])
+
+
 def answer_detailed(question):
     """대회 응답과 웹용 근거 메타데이터를 함께 생성합니다.
 
@@ -715,13 +798,18 @@ def answer_detailed(question):
 
     focused = _focused_evidence(question, hits)
     result = _generate_answer(question, hits)
-    if not result["unknown_reason"] or not focused:
+    if not result["unknown_reason"]:
         return result
+    if focused:
+        # The second draft still must pass the same grounding check.
+        log.info("Retrying known provision or annex evidence (%s)", result["unknown_reason"])
+        result = _generate_answer(question, focused, focused_retry=True)
+        if not result["unknown_reason"]:
+            return result
 
-    # Regenerate only when direct evidence was located. Unlike a verifier
-    # override, the second draft still must pass the same grounding check.
-    log.info("Retrying known provision or annex evidence (%s)", result["unknown_reason"])
-    return _generate_answer(question, focused, focused_retry=True)
+    # If Solar abstains despite an explicit delegation, quote only the exact
+    # matching source sentence. This does not accept the rejected model draft.
+    return _delegated_answer(question, hits) or result
 
 
 def _generate_answer(question, hits, *, focused_retry=False):

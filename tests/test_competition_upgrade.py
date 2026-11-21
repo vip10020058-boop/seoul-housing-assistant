@@ -158,6 +158,41 @@ def test_delegate_specific_details_and_cite_the_seoul_clause(monkeypatch):
     assert check.validate_response(response) == []
 
 
+@pytest.mark.parametrize(("question", "citation", "text"), [
+    ("서울시 반려견 놀이터는 몇 시부터 몇 시까지 운영하나요?",
+     "서울특별시 동물보호 조례 제29조 제3항", "반려견 놀이터의 설치 및 운영에 필요한 사항은 시장이 따로 정한다"),
+    ("서울시 주차장 수급 실태조사의 정확한 날짜는 언제인가요?",
+     "서울특별시 주차장 설치 및 관리 조례 제3조 제1항", "세부일정은 시장이 따로 정한다"),
+    ("서울시 금연구역 지정 변경 절차가 무엇인가요?",
+     "서울특별시 금연환경 조성 및 간접흡연 피해방지조례 제6조 제2항", "제5조제2항과 제5조제3항의 규정을 준용한다"),
+])
+def test_exact_delegation_or_reference_survives_a_model_abstention(monkeypatch, question, citation, text):
+    import upstage
+
+    monkeypatch.setattr(upstage, "chat", lambda *args, **kw: '{"found":false,"answer":"","evidence_ids":[]}')
+    result = rag.answer_detailed(question)
+    response = result["response"]
+    expected = next(hit for hit in rag._load()[0] if hit["label"] == citation)
+    assert response["citation"] == [citation]
+    assert text in response["answer"]
+    assert response["source_url"] == expected["source_url"]
+    assert response["effective_date"] == expected["effective_date"]
+    assert result["verification_status"] == "source_extracted"
+    assert check.validate_response(response) == []
+
+
+@pytest.mark.parametrize("question", [
+    "서울시 반려견 놀이터 이용요금은 얼마예요?",
+    "서울시 민간 반려견 카페는 몇 시부터 운영하나요?",
+    "서울 도서관 대출 기간은 언제까지인가요?",
+])
+def test_delegation_fallback_does_not_infer_details_from_unrelated_clauses(monkeypatch, question):
+    import upstage
+
+    monkeypatch.setattr(upstage, "chat", lambda *args, **kw: '{"found":false,"answer":"","evidence_ids":[]}')
+    assert rag.answer(question) == rag.UNKNOWN
+
+
 @pytest.mark.parametrize("sample_id", ["S2", "M3"])
 def test_rejected_amount_answer_is_rewritten_from_focused_evidence(monkeypatch, sample_id):
     import upstage
