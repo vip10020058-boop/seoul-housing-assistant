@@ -14,6 +14,7 @@ def test_hug_public_fields_and_error_fallback(monkeypatch):
     rows[:] = [{"ERROR_CODE": "03", "ERROR_MSG": "NO_DATA"}]
     result = housing.answer({"mode": "hug", "landlord_query": "마포구"})
     assert "error" in result and result["sources"][0]["url"] == housing.HUG_LOOKUP_URL
+    assert result["provider_code"] == "03"
 
 
 def test_lh_filters_and_published_property_address(monkeypatch):

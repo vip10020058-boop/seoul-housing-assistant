@@ -107,8 +107,15 @@ def hug_default_debtors(api_key, query=""):
     response.raise_for_status()
     data = response.json()
     records = _public_record_list(data)
-    if any("ERROR_CODE" in row for row in records) or (data and not records):
-        raise ValueError("HUG 공개명단 API 응답 오류")
+    error_row = next((row for row in records if "ERROR_CODE" in row), None)
+    if error_row:
+        code = str(error_row.get("ERROR_CODE") or "")[:12]
+        log.warning("HUG public list API returned error code %s", code)
+        return {"error": f"HUG 공개명단 API가 조회를 거절했습니다(응답 코드 {code}). HUG 포털에서 해당 키의 승인 상태와 활용기간을 확인해 주세요.",
+                "provider_code": code,
+                "sources": [{"title": "HUG 공개명단 공식 조회", "url": HUG_LOOKUP_URL}]}
+    if data and not records:
+        raise ValueError("HUG 공개명단 API 응답 구조 오류")
     public_records = []
     for row in records:
         if "CUST_NM" not in row or "ADDR" not in row:
