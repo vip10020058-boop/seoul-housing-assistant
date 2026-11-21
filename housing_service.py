@@ -181,14 +181,14 @@ def _rent_summary(rows):
         rent = number(row, "월세금액", "monthlyRent")
         if deposit is not None:
             deposits.append(deposit)
-        if rent is not None:
+        if rent is not None and rent > 0:
             rents.append(rent)
         area = row.get("서울 자치구", "")
         if area:
             group = by_district.setdefault(area, {"district": area, "count": 0, "deposits": [], "rents": []})
             group["count"] += 1
             if deposit is not None: group["deposits"].append(deposit)
-            if rent is not None: group["rents"].append(rent)
+            if rent is not None and rent > 0: group["rents"].append(rent)
     avg = lambda values: round(sum(values) / len(values), 1) if values else None
     district_rows = [{"district": item["district"], "count": item["count"],
                       "average_deposit_manwon": avg(item["deposits"]),
