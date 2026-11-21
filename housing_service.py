@@ -7,7 +7,6 @@ LLM: 기존 Upstage Solar API. 법령: 법제처 OPEN API에서 조례/법률을
 import json
 import logging
 import re
-import threading
 import xml.etree.ElementTree as ET
 
 import requests
@@ -16,9 +15,6 @@ import config
 import upstage
 
 log = logging.getLogger(__name__)
-_settings_lock = threading.RLock()
-_runtime_settings = {"upstage_api_key": config.UPSTAGE_API_KEY,
-                     "law_oc": "" if config.LAW_OC == "test" else config.LAW_OC}
 SEARCH_URL = "https://www.law.go.kr/DRF/lawSearch.do"
 SERVICE_URL = "https://www.law.go.kr/DRF/lawService.do"
 ORDINANCE_NAME = "서울특별시 청년주거 기본 조례"
@@ -27,13 +23,12 @@ PROGRAM_URL = "https://soco.seoul.go.kr/youth/bbs/BMSR00174/view.do?boardId=6734
 
 
 def connection_status():
-    with _settings_lock:
-        return {"upstage_configured": bool(_runtime_settings["upstage_api_key"]),
-                "law_configured": bool(_runtime_settings["law_oc"])}
+    return {"upstage_configured": bool(config.UPSTAGE_API_KEY),
+            "law_configured": bool(config.LAW_OC and config.LAW_OC != "test")}
 
 
 def connect_apis(api_key, law_oc):
-    """Validate both credentials before replacing the in-memory UI configuration."""
+    """Validate credentials without retaining them on the server."""
     if not api_key or len(api_key) > 512 or not law_oc or len(law_oc) > 128:
         return {"error": "Upstage API 키와 법제처 OC를 모두 입력해 주세요."}
     try:
@@ -51,14 +46,9 @@ def connect_apis(api_key, law_oc):
     except Exception as exc:
         log.warning("housing law API validation failed: %s", type(exc).__name__)
         return {"error": "법제처 API 연결에 실패했습니다. OC 값을 확인해 주세요."}
-    with _settings_lock:
-        _runtime_settings.update(upstage_api_key=api_key, law_oc=law_oc)
-    return {"ok": True, **connection_status()}
-
-
-def _settings_snapshot():
-    with _settings_lock:
-        return dict(_runtime_settings)
+    # Credentials are deliberately not retained by the server. The browser keeps
+    # them only in tab memory and sends them again with each housing request.
+    return {"ok": True, "upstage_configured": True, "law_configured": True}
 
 # 서울시 공고 제2026-1440호, 2026-04-30. 2026 회차는 2026-05-19 마감.
 NOTICE_CONTEXT = """서울시 청년월세지원 2026년 모집공고(서울특별시 공고 제2026-1440호, 2026-04-30)
@@ -124,7 +114,7 @@ def _find_exact_law(root, names):
 
 
 def _law_search(target, query, exact_names=(), law_oc=None):
-    params = {"OC": law_oc or _settings_snapshot()["law_oc"] or "test", "target": target, "type": "XML", "query": query,
+    params = {"OC": law_oc or config.LAW_OC or "test", "target": target, "type": "XML", "query": query,
               "display": 100 if target == "ordin" else 20, "search": 1}
     if target == "ordin":
         params["org"] = "6110000"  # 서울특별시
@@ -146,7 +136,7 @@ def _law_search(target, query, exact_names=(), law_oc=None):
 def _fetch_text(target, law, law_oc=None):
     if not law or not (law.get("mst") or law.get("id")):
         return ""
-    params = {"OC": law_oc or _settings_snapshot()["law_oc"] or "test", "target": target, "type": "XML"}
+    params = {"OC": law_oc or config.LAW_OC or "test", "target": target, "type": "XML"}
     params["MST" if law.get("mst") else "ID"] = law.get("mst") or law.get("id")
     response = requests.get(SERVICE_URL, params=params, timeout=(4, 18))
     response.raise_for_status()
@@ -265,17 +255,20 @@ JSON 결과 필드 summary, next_steps, documents, draft, caution을 채워 주�
 
 
 def answer(body):
-    settings = _settings_snapshot()
-    if not settings["upstage_api_key"]:
+    api_key = str(body.get("upstage_api_key") or config.UPSTAGE_API_KEY).strip()
+    law_oc = str(body.get("law_oc") or config.LAW_OC or "test").strip()
+    if not api_key:
         return {"error": "화면 상단의 API 설정에서 Upstage와 법제처 API를 먼저 연결해 주세요.", "answer": "", "sources": []}
+    if len(api_key) > 512 or len(law_oc) > 128:
+        return {"error": "API 설정값을 확인해 주세요.", "answer": "", "sources": []}
     stage, facts, checks = _compare_terms(body)
     mode = body.get("mode") if body.get("mode") in {"support", "application", "inquiry", "contract"} else "support"
     facts["mode"] = mode
     if body.get("other"):
         facts["question"] = (facts["question"] + "\n추가 질문: " + str(body["other"]).strip()[:160]).strip()
-    law_refs, law_errors = _law_references(settings["law_oc"])
+    law_refs, law_errors = _law_references(law_oc)
     raw = upstage.chat(_prompt(stage, facts, checks, law_refs, law_errors), response_format=SCHEMA,
-                       temperature=0.0, api_key=settings["upstage_api_key"])
+                       temperature=0.0, api_key=api_key)
     data = json.loads(raw)
     sources = [{"type": "서울시 모집공고", "title": "2026년 서울시 청년월세지원 모집 공고 제2026-1440호", "url": NOTICE_URL, "updated": "2026-04-30"},
                {"type": "서울시 안내", "title": "서울시 청년월세지원 안내 (2026년 모집 마감·2027년 공고 예정)", "url": PROGRAM_URL, "updated": "2026-11-12"}]

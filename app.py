@@ -8,8 +8,6 @@
 """
 import asyncio
 import logging
-import ipaddress
-from urllib.parse import urlsplit
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, HTMLResponse
@@ -61,39 +59,14 @@ def housing_page():
     return FileResponse(HOUSING_INDEX)
 
 
-def _local_ui_request(req: Request):
-    """API credentials are accepted only from a browser on the local machine."""
-    try:
-        client_ip = ipaddress.ip_address(req.client.host if req.client else "")
-        if getattr(client_ip, "ipv4_mapped", None):
-            client_ip = client_ip.ipv4_mapped
-        if not client_ip.is_loopback:
-            return False
-        host = req.headers.get("host", "").split(":", 1)[0].strip("[]").lower()
-        if host not in {"localhost", "127.0.0.1", "::1"}:
-            return False
-        origin = req.headers.get("origin")
-        if origin:
-            origin_host = (urlsplit(origin).hostname or "").lower()
-            if origin_host not in {"localhost", "127.0.0.1", "::1"}:
-                return False
-        return True
-    except (ValueError, TypeError):
-        return False
-
-
 @app.get("/ui/housing/status")
-def housing_status(req: Request):
-    if not _local_ui_request(req):
-        return {"local_only": True, "upstage_configured": False, "law_configured": False}
+def housing_status():
     import housing_service
     return housing_service.connection_status()
 
 
 @app.post("/ui/housing/connect")
 async def housing_connect(req: Request):
-    if not _local_ui_request(req):
-        return {"error": "API 설정은 이 컴퓨터의 localhost 화면에서만 할 수 있습니다."}
     try:
         body = await req.json()
         if not isinstance(body, dict):
@@ -110,8 +83,6 @@ async def housing_connect(req: Request):
 @app.post("/ui/housing/ask")
 async def housing_ask(req: Request):
     """Separate housing-support flow using Solar and live official law API references."""
-    if not _local_ui_request(req):
-        return {"error": "주거 상담 API는 이 컴퓨터의 localhost에서 사용할 수 있습니다.", "answer": ""}
     try:
         body = await req.json()
         question = body.get("question") if isinstance(body, dict) else None
