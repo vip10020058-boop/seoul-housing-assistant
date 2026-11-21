@@ -21,6 +21,8 @@ UPSTAGE_BASE_URL = "https://api.upstage.ai/v1"
 # 법제처 OPEN API 인증값(OC). 'test'로도 응답하지만, 대회용으로는 open.law.go.kr에서 개인 OC를 신청하세요.
 LAW_OC = os.environ.get("LAW_OC", "test")
 PUBLIC_DATA_API_KEY = os.environ.get("PUBLIC_DATA_API_KEY", "")
+LH_API_KEY = os.environ.get("LH_API_KEY", "")
+LH_DETAIL_API_KEY = os.environ.get("LH_DETAIL_API_KEY", "")
 # Dedicated key for the Ministry of Land apartment rent transaction API.
 # Falls back to the general data.go.kr key for existing deployments.
 MOLIT_API_KEY = os.environ.get("MOLIT_API_KEY", "")
@@ -32,7 +34,7 @@ TARGET_ORDINANCES = [
     "서울특별시 동물보호 조례",
     "서울특별시 자전거이용 활성화에 관한 조례",
     "서울특별시 도시공원 조례",
-    "서울특별시 청년 기본 조례",  # 확인 필요: 대회 운영진이 말한 '청년' 조례가 이것인지
+    "서울특별시 청년 기본 조례",
     "서울특별시 금연환경 조성 및 간접흡연 피해방지조례",
 ]
 TARGET_ORG = "서울특별시"      # 지자체기관명이 정확히 이것인 것만 받습니다

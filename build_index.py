@@ -8,6 +8,7 @@ LLM은 이 라벨을 고르기만 하고, 조항 표기를 직접 쓰지 않습�
        set CHUNK_UNIT=article & python -X utf8 build_index.py   (조 단위, 시연 '전' 장면)
 결과:  data/chunks_<단위>.json, data/vectors_<단위>.npy
 """
+import hashlib
 import json
 
 import numpy as np
@@ -92,8 +93,8 @@ def main():
     laws = json.loads((config.DATA / "ordinances.json").read_text(encoding="utf-8"))
     unit = config.CHUNK_UNIT
     chunks = make_chunks(laws, unit)
-    (config.DATA / f"chunks_{unit}.json").write_text(
-        json.dumps(chunks, ensure_ascii=False, indent=1), encoding="utf-8")
+    chunk_text = json.dumps(chunks, ensure_ascii=False, indent=1)
+    (config.DATA / f"chunks_{unit}.json").write_text(chunk_text, encoding="utf-8")
     print(f"조각 {len(chunks)}개 ({unit} 단위)")
 
     if not config.UPSTAGE_API_KEY:
@@ -102,6 +103,11 @@ def main():
     import upstage
     vecs = upstage.embed([c["text"] for c in chunks], config.EMBED_PASSAGE)
     np.save(config.DATA / f"vectors_{unit}.npy", np.array(vecs, dtype=np.float32))
+    manifest = {"chunks_sha256": hashlib.sha256(chunk_text.encode("utf-8")).hexdigest(),
+                "passage_model": config.EMBED_PASSAGE}
+    (config.DATA / f"vectors_{unit}.manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
     print("임베딩 저장 완료")
 
 

@@ -1,4 +1,5 @@
 import asyncio
+import threading
 
 import app
 import upstage
@@ -83,6 +84,45 @@ def test_ask_endpoint_preserves_four_field_contract(monkeypatch):
     assert set(response) == {"answer", "citation", "source_url", "effective_date"}
 
 
+def test_two_scoring_http_requests_can_run_concurrently(monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from fastapi.testclient import TestClient
+
+    barrier = threading.Barrier(2, timeout=3)
+    monkeypatch.setattr(app.config, "SERVER_MAX_CONCURRENCY", 2)
+
+    def score(question):
+        barrier.wait()
+        return {
+            "answer": question,
+            "citation": ["서울특별시 동물보호 조례 제29조 제3항"],
+            "source_url": "https://www.law.go.kr/ordinInfoP.do?ordinSeq=2171829",
+            "effective_date": "2026-10-01",
+        }
+
+    monkeypatch.setattr(app.rag, "answer", score)
+    with TestClient(app.app) as client, ThreadPoolExecutor(max_workers=2) as workers:
+        responses = list(workers.map(lambda q: client.post("/ask", json={"question": q}), ["첫 질문", "둘째 질문"]))
+    assert [response.status_code for response in responses] == [200, 200]
+    assert [response.json()["answer"] for response in responses] == ["첫 질문", "둘째 질문"]
+    assert all(set(response.json()) == set(app.rag.UNKNOWN) for response in responses)
+
+
+def test_queue_wait_is_included_in_scoring_deadline(monkeypatch):
+    monkeypatch.setattr(app.config, "ANSWER_TIMEOUT_SEC", 0.05)
+    monkeypatch.setattr(app.config, "SERVER_MAX_CONCURRENCY", 1)
+
+    async def score_with_full_queue():
+        limiter = app._limiter("scoring")
+        await limiter.acquire()
+        try:
+            return await asyncio.wait_for(app.ask(app.Ask(question="대기 중인 질문")), timeout=1)
+        finally:
+            limiter.release()
+
+    assert asyncio.run(score_with_full_queue()) == app.rag.UNKNOWN
+
+
 def test_api_call_semaphore_caps_concurrent_operations(monkeypatch):
     import threading
     import time
@@ -114,11 +154,11 @@ def test_answer_pipeline_rejects_out_of_range_evidence_ids(monkeypatch):
     import rag
 
     hit = {
-        "label": "서울특별시 예시 조례 제1조",
+        "label": "서울특별시 청년 기본 조례 제3조",
         "text": "예시 근거 내용입니다.",
-        "law": "서울특별시 예시 조례",
-        "source_url": "https://example.invalid/source",
-        "effective_date": "2026-01-01",
+        "law": "서울특별시 청년 기본 조례",
+        "source_url": "https://www.law.go.kr/ordinInfoP.do?ordinSeq=2054497",
+        "effective_date": "2025-07-14",
         "score": 0.8,
         "cos": None,
     }

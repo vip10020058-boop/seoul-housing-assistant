@@ -1,0 +1,320 @@
+[
+  {
+    "id": "regional_accidents",
+    "title": "서울 자치구 전세보증금반환보증 사고",
+    "coverage": "서울 전체와 25개 자치구의 최근 3개월 공시값",
+    "as_of": "2026-08-31",
+    "period_start": "2026-06-01",
+    "period_end": "2026-08-31",
+    "format": "XLSX",
+    "url": "https://www.data.go.kr/data/15134221/fileData.do",
+    "source_sheet": "시군구",
+    "note": "HUG 공시의 사고건수, 사고금액, 사고율을 그대로 표시합니다. 서울 전체는 공시 소계입니다.",
+    "columns": [
+      {
+        "key": "accident_count",
+        "label": "사고건수",
+        "unit": "건"
+      },
+      {
+        "key": "accident_amount",
+        "label": "사고금액",
+        "unit": "원"
+      },
+      {
+        "key": "accident_rate",
+        "label": "사고율",
+        "unit": "%"
+      }
+    ],
+    "total": {
+      "label": "서울 전체",
+      "district_code": "11000",
+      "accident_count": 183,
+      "accident_amount": 40236850000,
+      "accident_rate": 0.7
+    },
+    "rows": [
+      {
+        "label": "종로구",
+        "district_code": "11110",
+        "accident_count": 6,
+        "accident_amount": 1235000000,
+        "accident_rate": 2
+      },
+      {
+        "label": "중구",
+        "district_code": "11140",
+        "accident_count": 4,
+        "accident_amount": 1350000000,
+        "accident_rate": 1.5
+      },
+      {
+        "label": "용산구",
+        "district_code": "11170",
+        "accident_count": 1,
+        "accident_amount": 165000000,
+        "accident_rate": 0.1
+      },
+      {
+        "label": "성동구",
+        "district_code": "11200",
+        "accident_count": 1,
+        "accident_amount": 170000000,
+        "accident_rate": 0.1
+      },
+      {
+        "label": "광진구",
+        "district_code": "11215",
+        "accident_count": 11,
+        "accident_amount": 3057000000,
+        "accident_rate": 1.8
+      },
+      {
+        "label": "동대문구",
+        "district_code": "11230",
+        "accident_count": 7,
+        "accident_amount": 1407000000,
+        "accident_rate": 0.8
+      },
+      {
+        "label": "중랑구",
+        "district_code": "11260",
+        "accident_count": 6,
+        "accident_amount": 1294800000,
+        "accident_rate": 0.7
+      },
+      {
+        "label": "성북구",
+        "district_code": "11290",
+        "accident_count": 2,
+        "accident_amount": 400000000,
+        "accident_rate": 0.2
+      },
+      {
+        "label": "강북구",
+        "district_code": "11305",
+        "accident_count": 2,
+        "accident_amount": 247500000,
+        "accident_rate": 0.3
+      },
+      {
+        "label": "도봉구",
+        "district_code": "11320",
+        "accident_count": 2,
+        "accident_amount": 402750000,
+        "accident_rate": 0.3
+      },
+      {
+        "label": "노원구",
+        "district_code": "11350",
+        "accident_count": 2,
+        "accident_amount": 276750000,
+        "accident_rate": 0.1
+      },
+      {
+        "label": "은평구",
+        "district_code": "11380",
+        "accident_count": 11,
+        "accident_amount": 2315300000,
+        "accident_rate": 0.7
+      },
+      {
+        "label": "서대문구",
+        "district_code": "11410",
+        "accident_count": 2,
+        "accident_amount": 418000000,
+        "accident_rate": 0.3
+      },
+      {
+        "label": "마포구",
+        "district_code": "11440",
+        "accident_count": 2,
+        "accident_amount": 643000000,
+        "accident_rate": 0.2
+      },
+      {
+        "label": "양천구",
+        "district_code": "11470",
+        "accident_count": 7,
+        "accident_amount": 1569400000,
+        "accident_rate": 0.6
+      },
+      {
+        "label": "강서구",
+        "district_code": "11500",
+        "accident_count": 44,
+        "accident_amount": 9621200000,
+        "accident_rate": 1.6
+      },
+      {
+        "label": "구로구",
+        "district_code": "11530",
+        "accident_count": 13,
+        "accident_amount": 3180000000,
+        "accident_rate": 1.6
+      },
+      {
+        "label": "금천구",
+        "district_code": "11545",
+        "accident_count": 4,
+        "accident_amount": 656600000,
+        "accident_rate": 0.4
+      },
+      {
+        "label": "영등포구",
+        "district_code": "11560",
+        "accident_count": 16,
+        "accident_amount": 3083900000,
+        "accident_rate": 0.7
+      },
+      {
+        "label": "동작구",
+        "district_code": "11590",
+        "accident_count": 2,
+        "accident_amount": 530000000,
+        "accident_rate": 0.3
+      },
+      {
+        "label": "관악구",
+        "district_code": "11620",
+        "accident_count": 9,
+        "accident_amount": 1778700000,
+        "accident_rate": 0.9
+      },
+      {
+        "label": "서초구",
+        "district_code": "11650",
+        "accident_count": 4,
+        "accident_amount": 833300000,
+        "accident_rate": 0.4
+      },
+      {
+        "label": "강남구",
+        "district_code": "11680",
+        "accident_count": 8,
+        "accident_amount": 2220500000,
+        "accident_rate": 0.8
+      },
+      {
+        "label": "송파구",
+        "district_code": "11710",
+        "accident_count": 8,
+        "accident_amount": 1603550000,
+        "accident_rate": 0.4
+      },
+      {
+        "label": "강동구",
+        "district_code": "11740",
+        "accident_count": 9,
+        "accident_amount": 1777600000,
+        "accident_rate": 0.6
+      }
+    ]
+  },
+  {
+    "id": "victim_homes",
+    "title": "경·공매 지원 신청자의 전세사기 피해주택",
+    "coverage": "전국 2023년 7월~2025년 5월의 경·공매 지원 신청 자료",
+    "as_of": "2025-05-31",
+    "format": "XLSX",
+    "url": "https://www.data.go.kr/data/15144220/fileData.do",
+    "alternate_url": "https://www.khug.or.kr/houstar/web/p03/01/p030105.jsp?articleId=36998&currentPage=1&mode=S",
+    "source_sheet": "2023년(23.7.~), 2024년, 2025년(~25.5.)",
+    "note": "각 시군구 소계를 한 번씩 합산했습니다. 시기별 집계 개월 수가 다르며, 경·공매 지원을 신청한 피해주택만 포함합니다.",
+    "columns": [
+      {
+        "key": "home_count",
+        "label": "피해주택 수",
+        "unit": "채"
+      }
+    ],
+    "rows": [
+      {
+        "label": "2023년 7~12월",
+        "period_start": "2023-07-01",
+        "period_end": "2023-12-31",
+        "home_count": 642
+      },
+      {
+        "label": "2024년 1~12월",
+        "period_start": "2024-01-01",
+        "period_end": "2024-12-31",
+        "home_count": 1708
+      },
+      {
+        "label": "2025년 1~5월",
+        "period_start": "2025-01-01",
+        "period_end": "2025-05-31",
+        "home_count": 687
+      }
+    ]
+  },
+  {
+    "id": "seoul_subrogation",
+    "title": "서울 전세보증금반환보증 사고 및 대위변제",
+    "coverage": "서울 2020~2023년 연간 사고 및 대위변제 내역",
+    "as_of": "2023-12-31",
+    "format": "XLSX",
+    "url": "https://www.data.go.kr/data/15139307/fileData.do",
+    "alternate_url": "https://www.khug.or.kr/houstar/web/p03/01/p030105.jsp?articleId=37002&currentPage=1&mode=S",
+    "source_sheet": "사고현황, 대위변제 현황",
+    "note": "HUG의 일회성 과거 집계입니다. 대위변제는 HUG가 임대인을 대신해 지급한 실적입니다.",
+    "columns": [
+      {
+        "key": "payment_count",
+        "label": "대위변제 건수",
+        "unit": "건"
+      },
+      {
+        "key": "payment_amount",
+        "label": "대위변제 금액",
+        "unit": "억원"
+      },
+      {
+        "key": "accident_count",
+        "label": "사고건수",
+        "unit": "건"
+      },
+      {
+        "key": "accident_amount",
+        "label": "사고금액",
+        "unit": "억원"
+      }
+    ],
+    "rows": [
+      {
+        "label": "2020년",
+        "year": 2020,
+        "accident_count": 988,
+        "accident_amount": 2111,
+        "payment_count": 951,
+        "payment_amount": 2054.90317672
+      },
+      {
+        "label": "2021년",
+        "year": 2021,
+        "accident_count": 1217,
+        "accident_amount": 2809,
+        "payment_count": 1097,
+        "payment_amount": 2496.059214
+      },
+      {
+        "label": "2022년",
+        "year": 2022,
+        "accident_count": 1870,
+        "accident_amount": 4548,
+        "payment_count": 1514,
+        "payment_amount": 3670.2873637
+      },
+      {
+        "label": "2023년",
+        "year": 2023,
+        "accident_count": 5065,
+        "accident_amount": 13204,
+        "payment_count": 4229,
+        "payment_amount": 10902.82835
+      }
+    ]
+  }
+]

@@ -7,12 +7,14 @@
 # --- 가상환경 / 캐시 ---
 .venv/
 __pycache__/
+.pytest_cache/
 *.pyc
 
 # --- 재생성 가능한 산출물 ---
 data/annex/
 data/annex_files/
 data/vectors_*.npy
+data/vectors_*.manifest.json
 results/
 
 # --- 임시/디버그 파일 ---

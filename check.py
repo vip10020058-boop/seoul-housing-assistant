@@ -17,14 +17,17 @@ import re
 import time
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from urllib.parse import urlparse
 
 import config
 
-CITE = re.compile(r"(서울특별시.*?(?:조례|규칙))\s*(제\d+조(?:의\d+)?|별표\s*\d*|별도\s*\d+)\s*(제\d+항)?")
+CITE = re.compile(
+    r"(서울특별시.*?(?:조례|규칙))\s*(제\d+조(?:의\d+)?|별표(?:\s*\d+(?:의\d+)?)?|별도\s*\d+)\s*(제\d+항)?"
+)
 
 
 def parse(c):
+    if not isinstance(c, str):
+        return None
     m = CITE.search(c.replace(" ", " "))
     if not m:
         return None
@@ -60,34 +63,46 @@ def score_citation(preds, gold, apply_overage=True):
 
 def validate_response(r):
     """Detailed four-field contract and citation overage hazard detection."""
-    issues=[]
-    wanted={"answer","citation","source_url","effective_date"}
-    if not isinstance(r,dict):
+    issues = []
+    wanted = {"answer", "citation", "source_url", "effective_date"}
+    if not isinstance(r, dict):
         return ["not_a_json_object"]
-    if set(r)!=wanted:
+    if set(r) != wanted:
         issues.append("wrong_fields")
-    if not isinstance(r.get("answer"),str) or not r.get("answer", "").strip():
+    answer = r.get("answer")
+    if not isinstance(answer, str) or not answer.strip():
         issues.append("invalid_answer")
-    cites=r.get("citation")
-    if not isinstance(cites,list) or not all(isinstance(c,str) for c in cites):
+    cites = r.get("citation")
+    if not isinstance(cites, list) or not all(isinstance(c, str) for c in cites):
         issues.append("invalid_citation_type")
-        cites=[]
-    if len(cites)>3:
+        cites = []
+    if len(cites) > 3:
         issues.append("citation_over_three")
-    if any("구 조례" in c or "구 규칙" in c for c in cites):
+    if any(re.search(r"서울특별시\s*[가-힣]+구\s", c) for c in cites):
         issues.append("district_reference")
-    unknown=r.get("answer", "").strip()=="확인 불가"
+    allowed = {re.sub(r"\s+", "", name) for name in config.TARGET_ORDINANCES}
+    if any((parsed := parse(c)) is None or parsed[0] not in allowed for c in cites):
+        issues.append("invalid_citation_scope")
+    url = r.get("source_url")
+    effective_date = r.get("effective_date")
+    unknown = answer == "확인 불가"
     if unknown:
         if cites:
             issues.append("unknown_has_citation")
+        if url != "" or effective_date != "":
+            issues.append("invalid_unknown_metadata")
     else:
         if not cites:
             issues.append("answer_without_citation")
-        u=r.get("source_url", "")
-        if not isinstance(u,str) or not u.startswith("https://www.law.go.kr/"):
+        if not isinstance(url, str) or not re.fullmatch(
+            r"https://www\.law\.go\.kr/ordinInfoP\.do\?ordinSeq=\d+", url
+        ):
             issues.append("missing_or_unofficial_source_link")
-        d=r.get("effective_date", "")
-        if not isinstance(d,str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}",d):
+        try:
+            effective = datetime.strptime(effective_date, "%Y-%m-%d")
+            if effective.strftime("%Y-%m-%d") != effective_date or effective.strftime("%Y%m%d") > config.BASE_DATE:
+                raise ValueError
+        except (TypeError, ValueError):
             issues.append("invalid_effective_date")
     return issues
 
@@ -151,7 +166,11 @@ def run_full(qs, url=None, parallel=2):
     """Run actual 2-in-flight grading-like requests and print any harmful failure."""
     if url:
         import requests
-        call=lambda q: requests.post(url,json={"question":q},timeout=90).json()
+
+        def call(question):
+            response = requests.post(url, json={"question": question}, timeout=90)
+            response.raise_for_status()
+            return response.json()
     else:
         import rag
         call=rag.answer
@@ -161,23 +180,27 @@ def run_full(qs, url=None, parallel=2):
             response=call(q["question"])
             error=None
         except Exception as exc:
-            response,error={},f"{type(exc).__name__}: {exc}"
+            response, error = {}, type(exc).__name__
         sec=time.monotonic()-started
         issues=validate_response(response)
-        unknown=(response.get("answer")=="확인 불가" and response.get("citation")==[])
+        response = response if isinstance(response, dict) else {}
+        answer_text = response.get("answer") if isinstance(response.get("answer"), str) else ""
+        citations = response.get("citation") if isinstance(response.get("citation"), list) else []
+        unknown = answer_text == "확인 불가" and citations == []
         fatal = {"not_a_json_object","wrong_fields","invalid_answer","invalid_citation_type",
-                 "district_reference","unknown_has_citation","answer_without_citation",
+                 "district_reference","invalid_citation_scope","unknown_has_citation",
+                 "invalid_unknown_metadata","answer_without_citation",
                  "missing_or_unofficial_source_link","invalid_effective_date"}
         if error or sec>90 or fatal.intersection(issues):
             sc=0.0
         elif q["gold"]:
-            sc=score_citation(response.get("citation", []), q["gold"])
+            sc=score_citation(citations, q["gold"])
         else:
             sc=1.0 if unknown else 0.0
-        numbers=content_check(response.get('answer',''),q.get('answer_key','')) if q['gold'] else {'missing':[],'checked':False}
+        numbers=content_check(answer_text,q.get('answer_key','')) if q['gold'] else {'missing':[],'checked':False}
         if numbers['missing'] and 'missing_expected_numbers' not in issues:
             issues.append('missing_expected_numbers')
-        if q["gold"] and len(response.get("citation", []))>len(q["gold"])+2:
+        if q["gold"] and len(citations)>len(q["gold"])+2:
             if "citation_overage_penalty" not in issues:
                 issues.append("citation_overage_penalty")
         if sec>90:
@@ -185,9 +208,8 @@ def run_full(qs, url=None, parallel=2):
         if error:
             issues.append("request_error")
         return {"id":q["id"],"type":q.get("type", ""),"question":q["question"],
-                "score":round(sc,4),"sec":round(sec,3),"format_ok":not any(x in issues for x in
-                ("wrong_fields","invalid_answer","invalid_citation_type","invalid_effective_date")),
-                "error":error,"issues":issues,"content_numbers":numbers,"response":response,"gold":q["gold"],
+                "score":round(sc,4),"sec":round(sec,3),"format_ok":not error and not fatal.intersection(issues),
+                "error":error,"issues":issues,"content_numbers":numbers,"response":response,"citation":citations,"gold":q["gold"],
                 "answer_key":q.get("answer_key", "")}
 
     # One or two simultaneous calls matches the organizer's actual pre-check.
@@ -200,11 +222,11 @@ def run_full(qs, url=None, parallel=2):
     rows=[results[q["id"]] for q in qs]
     for r in rows:
         print(f"{r['id']:3} {r['score']:.2f} {r['sec']:6.2f}s "
-              f"citation={len(r['response'].get('citation', []))} "
+              f"citation={len(r['citation'])} "
               f"{'FAIL:'+','.join(r['issues']) if r['issues'] else '형식OK'} "
               f"{str(r['response'].get('answer', ''))[:55]}")
         if r['score'] < 1 or r['issues']:
-            actual = r['response'].get('citation', [])
+            actual = r["citation"]
             print('      실제 인용:', actual)
             if r['gold']:
                 missing = [alts for alts in r['gold'] if max(
@@ -241,9 +263,14 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--retrieval", action="store_true")
     ap.add_argument("--url")
+    ap.add_argument("--offline", action="store_true", help="Use only local keyword retrieval")
     ap.add_argument("--questions", default=str(config.ROOT / "sample_questions.json"))
     ap.add_argument("--parallel", type=int, default=2,
                     help="Number of parallel grading calls (default 2, like organizer)")
     a = ap.parse_args()
+    if a.offline and not a.retrieval:
+        ap.error("--offline requires --retrieval")
+    if a.offline:
+        config.UPSTAGE_API_KEY = ""
     qs = json.loads(open(a.questions, encoding="utf-8").read())
     run_retrieval(qs) if a.retrieval else run_full(qs, a.url, parallel=a.parallel)

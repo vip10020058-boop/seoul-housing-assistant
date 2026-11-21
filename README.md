@@ -1,46 +1,83 @@
-# AI 서울 주거도우미
+# AI 서울 주거 도우미
 
-서울의 주거 문제를 서울시 조례, 국가 법령, 해당 사업의 모집공고와 연결해 설명하고 다음 절차와 문의·신청 준비까지 돕는 웹 앱입니다. 조례가 정하는 제도 근거와 공고에서 정하는 신청 기준을 구분해 제공합니다.
+서울에서 집을 구하거나 계약한 시민이 조건에 맞는 주거 지원, 공공임대 공고, 임대차 절차와 공식 서식을 한곳에서 확인하는 웹 앱입니다. 첫 화면에서 질문을 입력하거나 왼쪽 메뉴에서 필요한 작업으로 들어갈 수 있습니다.
 
-## 서비스 기능
-
-- **상황별 조례 연결**: 질문의 주제에 맞는 서울시 조례를 법제처 자치법규 API에서 조회하고, 조례 원문·조문·시행일을 사업 공고 기준과 구분해 보여줍니다. 조례에 없는 모집 기간·소득·금액·서류를 조례 내용으로 오인하지 않도록 안내합니다.
-- **맞춤 주거 상담**: Upstage Solar가 사용자의 상황, 조회한 조례, 관련 법령과 공식 공고를 바탕으로 다음 절차를 안내합니다.
-- **제도·복지 추천**: 희망 지역과 예산을 입력해 서울 청년월세지원 기준과 LH 공공임대 공고를 함께 확인합니다.
-- **공공임대·시세 찾기**: LH 임대공고 API와 국토부 전월세 실거래 API를 조회합니다. 서울 전체를 선택하면 최근 계약월의 25개 자치구 거래 건수와 평균 보증금·월세를 요약하고, 그래프와 원자료 일부를 보여줍니다. 실거래는 신고된 계약 사례이며 현재 중개 중인 매물은 아닙니다.
-- **계약서 초안·점검**: 주택 유형, 계약일, 보증금, 월세, 관리비와 합의한 특약을 바탕으로 임대차계약서 초안을 작성합니다. 임대인·임차인의 신원정보와 상세 주소는 입력하지 않고, 미입력 정보는 `[기재 필요]`로 표시합니다. 법제처의 주택임대차보호법 원문과 연결해 확인 항목을 안내합니다.
-- **계약서·신청서 PDF**: 매매·전세·월세 계약서와 청년월세지원 준비서류·주거급여·임대차 신고서 초안을 작성하고, 브라우저 인쇄 기능에서 PDF로 저장할 수 있습니다. PDF는 사용자 기기에서 생성되며 서버에 보관되지 않습니다. 공식 원본 서식은 법무부·서울주거포털·정부24 등 원문 링크를 따로 제공합니다.
-- **신청·민원 문서 작성**: 신청서 초안과 문의·민원 문안을 준비합니다.
-- **상담에서 문서 준비로 연결**: 확인 결과에서 같은 상담 내용을 이어 담당 기관 문의 초안을 만들거나 신청서 준비로 넘어갈 수 있습니다.
-- **HUG 공개명단·사고 통계**: 상습 채무불이행자 명단 API 조회와 HUG 집계 파일 원문 연결을 별도 메뉴로 제공합니다.
+- **상담과 제도 추천** — 서울시 조례, 국가 법령, 사업 공고를 구분해 보여줍니다. 가입이나 선정 자격을 단정하지 않고 다음 절차와 기관 링크를 제공합니다.
+- **공공임대와 전월세 거래** — LH 모집공고와 국토교통부 신고 자료를 이용합니다. 공고에 공개된 주소와 단지명은 카카오맵 검색 링크로 확인할 수 있습니다. 실거래 통계는 조회된 과거 계약 사례를 기준으로 집계합니다.
+- **계약서·신청서·민원** — 매매·전세·월세는 당사자, 지급 조건, 특약, 서명란이 있는 PDF 초안으로 준비할 수 있습니다. 민원은 기관에 전달할 문안을 정리하고, 공공 서식은 해당 기관에서 받거나 작성할 수 있도록 연결합니다.
+- **HUG 사고 통계와 공개명단** — 통계의 집계 범위·기준일과 자료 링크를 표시합니다. 공개명단은 HUG가 공개한 정보만 조회하며, 명단의 주소는 사고 물건 주소로 판단할 수 없습니다.
 
 ## 실행
+
+Python 3.11 이상에서 아래 명령을 실행합니다.
 
 ```powershell
 py -3 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m uvicorn app:app --host 0.0.0.0 --port 8000
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+# .env에 서비스 키를 등록한 뒤 실행합니다.
+.\.venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
-브라우저에서 `http://127.0.0.1:8000/`에 접속합니다. 배포 사이트는 [seoul-housing-assistant.vercel.app](https://seoul-housing-assistant.vercel.app/)입니다.
+브라우저에서 [로컬 서비스](http://127.0.0.1:8000/)를 엽니다. API 키는 서버 환경변수에서 읽습니다. Vercel에서는 프로젝트의 **Settings → Environment Variables**에서 실제 사용할 환경(Production 또는 Preview)을 선택해 등록한 뒤 새로 배포합니다. `/health`와 `/ui/housing/status`는 키 값을 공개하지 않고 설정 여부를 보여줍니다. 키가 설정된 상태에서 실제 서비스 조회를 실행해 활용 승인과 응답을 확인합니다.
 
-API 키는 화면에서 입력하지 않습니다. 로컬 실행은 `.env.example`을 `.env`로 복사해 `UPSTAGE_API_KEY`, `LAW_OC`, `PUBLIC_DATA_API_KEY`, `MOLIT_API_KEY`, `HUG_API_KEY`를 설정합니다. 국토부 전월세 API 전용 키는 `MOLIT_API_KEY`에 입력합니다. 비워 두면 기존 호환을 위해 `PUBLIC_DATA_API_KEY`를 사용합니다. Vercel 배포는 프로젝트의 **Settings → Environment Variables**에 같은 이름으로 등록한 뒤 새 배포를 만드세요. `.env`는 `.gitignore`에 포함되어 공개 저장소에 올라가지 않습니다. 브라우저는 상담 조건만 서버에 보내고 키는 보내지 않습니다.
+| 환경변수 | 사용처와 발급·승인 안내 |
+|---|---|
+| `UPSTAGE_API_KEY` | Solar 답변 생성·임베딩·검증, 별표 Document Parse. [Upstage Console](https://console.upstage.ai/) |
+| `LAW_OC` | 현행 조례·법령 조회와 자료 수집. 배포에는 본인 발급 OC를 사용합니다. [법제처 공동활용 안내](https://open.law.go.kr/LSO/openApi/guideList.do) |
+| `LH_API_KEY` | LH 분양·임대공고 API 활용 승인 후 발급받은 인증키. [LH API 명세](https://www.data.go.kr/data/15058530/openapi.do) |
+| `LH_DETAIL_API_KEY` | 선택 사항. 공고의 단지 정보를 추가로 찾는 데 쓰는 상세조회 키. [LH 공고 상세 API 명세](https://www.data.go.kr/data/15057999/openapi.do) |
+| `MOLIT_API_KEY` | 국토부 아파트 전월세 실거래 API 활용 승인 후 발급받은 인증키. [국토부 API 명세](https://www.data.go.kr/data/15126474/openapi.do) |
+| `PUBLIC_DATA_API_KEY` | LH·국토부 전용 키가 없을 때 사용하는 호환 항목. 해당 키로 각 API 활용이 승인되어 있어야 합니다. [공공데이터포털](https://www.data.go.kr/) |
+| `HUG_API_KEY` | 상습 채무불이행자 명단공개 API 인증키. [HUG Open API 안내](https://www.khug.or.kr/houstar/web/p03/01/p030105.jsp?articleId=38236&currentPage=1&mode=S) |
 
-## 공식 데이터 출처
+`.env`와 로컬 인덱스 파일은 Git에서 제외됩니다. 청년월세지원의 연도별 접수일·금액·서류는 해당 회차 공고에서 확인합니다. [서울주거포털 사업 안내](https://housing.seoul.go.kr/site/main/content/sh01_060513) · [2026 모집 공고](https://housing.seoul.go.kr/site/main/board/notice/12667).
 
-- [법제처 Open API 안내](https://open.law.go.kr/LSO/openApi/guideList.do)
-- [LH 임대공고 Open API](https://www.data.go.kr/data/15058530/openapi.do)
-- [국토부 아파트 전월세 실거래 API](https://www.data.go.kr/data/15126474/openapi.do)
-- [HUG 상습 채무불이행자 명단 API](https://www.khug.or.kr/houstar/web/p03/01/p030105.jsp?articleId=38236&currentPage=1&mode=S)
-- [HUG 지역별 사고 건수·금액·사고율 파일](https://www.data.go.kr/data/15134221/fileData.do)
-- [HUG 전세 관련 사고·피해주택 현황 파일](https://www.data.go.kr/data/15144220/fileData.do)
+## 채점 API
 
-HUG 상습 채무불이행자 API는 지역별 사고 통계 API가 아닙니다. 사고 통계와 피해주택 자료는 별도 파일 데이터이며 원문 페이지에 표시된 기준일과 집계 범위를 확인하도록 연결합니다. 피해주택 수 자료는 경·공매지원 신청 기준이므로 전체 전세사기 피해주택 수와 동일하지 않습니다.
+`POST /ask`는 2026년 10월 1일에 시행 중인 서울특별시 조례 6종(주차장·동물보호·자전거·도시공원·청년·금연)을 검색합니다. 시민용 `POST /ui/housing/ask`가 조회하는 최신 조례·법률·사업 자료와 별개로 운영됩니다.
 
-계약서 결과는 사용자가 검토·수정하는 초안이며, 법률상 효력이나 개별 사안의 적법성을 보장하지 않습니다. 체결 전에 등기사항증명서·선순위 권리·체납 정보와 실제 합의 내용을 확인하고, 필요하면 공인중개사나 법률 전문가의 검토를 받으세요. 주요 법령 원문은 [주택임대차보호법](https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&chrClsCd=010202&efYd=20260102&lsiSeq=276291)에서 확인할 수 있습니다.
+```http
+POST /ask
+Content-Type: application/json
 
-주택임대차 표준계약서는 [법무부 공식 자료실](https://www.moj.go.kr/moj/163/subview.do)에서 원본 게시용과 사용용을 확인할 수 있습니다. 서울 청년월세지원은 공식 포털에서 정해진 기간에 온라인으로 접수하므로, 이 서비스의 신청 준비 PDF가 공식 접수 양식을 대신하지 않습니다. [서울주거포털 신청·제출서류](https://housing.seoul.go.kr/site/main/content/sh01_060513), [정부24 주거급여 신청 안내](https://www.gov.kr/mw/AA020InfoCappView.do?CappBizCD=16130000040).
+{"question":"서울시 공영주차장 1급지 노상주차장 5분 요금은 얼마인가요?"}
+```
 
-## 경진대회 채점 경로
+근거 있는 응답은 `answer`, `citation`, `source_url`, `effective_date`를 반환합니다. 인용에는 답변에 사용한 조·항과 별표가 들어갑니다. 근거가 없거나 입력·상류 API 처리에 실패한 경우 같은 네 필드로 안전 응답을 반환합니다.
 
-대회 규칙을 위해 `POST /ask`는 기존 고정 조례 자료를 이용하는 독립 채점 경로로 유지합니다. 서울시 조례 6종 전체와 2026-10-01 시행본 기준, 네 필드(`answer`, `citation`, `source_url`, `effective_date`) 응답 계약을 변경하지 않았습니다. 시민용 주거 상담은 별도 경로에서 사용자 상황에 맞는 조례를 현행 법제처 API로 조회합니다.
+```json
+{"answer":"확인 불가","citation":[],"source_url":"","effective_date":""}
+```
+
+운영에서 `USE_VERIFY=1`과 `CHUNK_UNIT=paragraph`를 유지합니다. 서버의 요청 대기와 응답 처리 제한은 75초이고, 대회 문항 한도는 90초입니다.
+
+## 데이터 재현과 검증
+
+저장소에는 여섯 조례의 기준일 원문·메타데이터, 항 단위 및 조 단위 비교용 조각, Document Parse로 정리한 별표가 포함된 검색 조각이 있습니다. 첫 실행은 이 자료로 키워드 검색을 할 수 있습니다. 혼합 검색용 Solar 임베딩은 `build_index.py`가 만드는 `vectors_<단위>.npy`와 `vectors_<단위>.manifest.json`을 해당 검색 조각과 함께 배치합니다. 둘 중 하나가 없거나 자료가 맞지 않으면 키워드 검색을 사용합니다. 운영 배포에서 자료와 벡터의 상태는 `/health`의 `corpus_ready`와 `vector_index_available`로 확인합니다.
+
+수집과 파싱은 데이터 재구축이 필요할 때 실행합니다. Document Parse가 만든 파일은 기존 검색 조각을 재생성할 때 함께 보관해 사용합니다. 수집된 조례가 기준일에 실제 적용되는지 확인한 뒤 인덱스를 만듭니다.
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 fetch_ordinances.py
+.\.venv\Scripts\python.exe -X utf8 parse_annex.py
+.\.venv\Scripts\python.exe -X utf8 build_index.py
+.\.venv\Scripts\python.exe -X utf8 check.py --retrieval --offline
+```
+
+실제 서버와 API 키를 설정한 뒤 공개 예시, 함정 문항, 응답 시간과 형식을 확인합니다.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -X utf8 check.py --url http://127.0.0.1:8000/ask --parallel 2
+```
+
+채점 기간에는 배포 주소에서 같은 점검을 실행하고 평가자가 인증 화면 없이 `POST /ask`를 호출할 수 있는지 확인합니다. [발표·녹화 대본](HOUSING_DEMO.md) · [제출 및 피드백 반영표](SUBMISSION.md).
+
+## 공식 원본과 접수
+
+- 전·월세 계약서의 공식 사용용과 게시용은 법무부 자료실에서 받습니다. [주택임대차 표준계약서](https://www.moj.go.kr/moj/163/subview.do).
+- 임대차 신고 시에는 시행규칙의 별지 서식과 신고 절차를 확인합니다. [시행규칙 및 별지 서식](https://www.law.go.kr/lsInfoP.do?joNo=000602&lsId=012794) · [부동산거래관리시스템](https://rtms.molit.go.kr/).
+- 주거급여는 정부24, 청년월세지원은 서울주거포털, 민원은 서울시 응답소 또는 국민신문고에서 실제 절차를 확인합니다. [주거급여 신청](https://www.gov.kr/mw/AA020InfoCappView.do?CappBizCD=16130000040) · [서울 청년월세지원](https://housing.seoul.go.kr/site/main/content/sh01_060513) · [서울시 응답소](https://eungdapso.seoul.go.kr/) · [국민신문고](https://www.epeople.go.kr/).
+- HUG 사고현황은 지역별 최근 3개월 평균의 사고 건수·금액·사고율을 다룹니다. 피해주택 수는 경·공매지원 신청자 기준입니다. [지역별 사고현황](https://www.data.go.kr/data/15134221/fileData.do) · [전세 관련 현황](https://www.data.go.kr/data/15144220/fileData.do).

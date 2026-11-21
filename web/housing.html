@@ -2,20 +2,64 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#223a5e">
-<title>AI 주거 도우미 · 서울 청년월세지원</title>
+<title>AI 서울 주거 도우미</title>
 <style>
-:root{--navy:#223a5e;--navy2:#1b2e4a;--accent:#a23b3b;--bg:#f7f8fa;--paper:#fff;--text:#1f2328;--muted:#78818d;--line:#e5e8ed;--soft:#f2f4f7;--ok:#1f7a4d;--warn:#a15e13;--pale:#eef2f8}*{box-sizing:border-box}.hidden{display:none!important}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.65 Pretendard,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}.app{min-height:100vh;display:flex}.sidebar{width:220px;flex:none;background:#fff;border-right:1px solid var(--line);padding:17px 12px;display:flex;flex-direction:column;gap:6px}.brand{font-size:16px;font-weight:800;padding:4px 10px 15px}.brand span{color:var(--accent)}.side-btn{display:flex;align-items:center;gap:9px;text-decoration:none;color:#404750;padding:10px 11px;border-radius:8px;font-size:12px}.side-btn:hover,.side-btn.active{background:var(--pale);color:var(--navy);font-weight:700}.ico{width:18px;text-align:center}.side-sep{height:1px;background:var(--line);margin:8px 4px}.side-note{font-size:10px;color:var(--muted);padding:0 10px;line-height:1.8}.status-side{margin-top:auto;color:var(--muted);font-size:10px;padding:10px}.main{flex:1;min-width:0}.topbar{height:58px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(17px,4vw,54px);font-size:11px}.crumb{color:var(--muted)}.live{padding:5px 9px;border-radius:30px;background:#edf6f0;color:var(--ok);font-weight:700}.content{max-width:1120px;margin:auto;padding:35px clamp(16px,4vw,52px) 60px}.eyebrow{font-size:10px;font-weight:800;color:var(--accent);letter-spacing:1.1px}.hero{display:flex;justify-content:space-between;gap:18px;align-items:end;margin:8px 0 23px}.hero h1{font:800 clamp(26px,3vw,35px)/1.25 "Nanum Myeongjo",Pretendard,serif;letter-spacing:-1px;margin:0}.hero p{font-size:12px;color:var(--muted);margin:8px 0 0}.asof{font-size:10px;color:var(--muted);white-space:nowrap;border:1px solid var(--line);background:white;border-radius:20px;padding:7px 10px}.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.72fr);gap:15px;align-items:start}.card{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:18px;box-shadow:0 2px 10px #1b2e4a08}.head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.head h2{font-size:13px;margin:0}.label{font-size:9px;color:var(--muted)}.stage{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.stage button,.mode button{background:white;border:1px solid var(--line);border-radius:9px;padding:10px;color:#59626e;font:inherit;font-size:11px;cursor:pointer}.stage button.selected,.mode button.selected{border-color:#6e84a7;background:#f0f3f8;color:var(--navy);font-weight:700}.fields{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.field{margin:7px 0;display:grid;gap:4px}.field label{font-size:10px;font-weight:700}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;padding:9px 10px;font:inherit;font-size:11px;color:var(--text)}.field textarea{min-height:58px;resize:vertical}.field .hint{font-size:9px;color:var(--muted)}.checkrow{display:flex;gap:8px;align-items:center;font-size:10px;color:#56606b;margin:9px 0}.checkrow input{accent-color:var(--navy)}.mode{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.mode button{padding:7px 9px;font-size:10px}.go{width:100%;border:0;border-radius:9px;background:var(--navy);color:white;font:700 11px inherit;padding:12px;cursor:pointer}.go:hover{background:var(--navy2)}.go:disabled{opacity:.55;cursor:wait}.privacy{font-size:9px;color:#8a929c;margin:9px 0 0}.statusbox{padding:12px;border-radius:10px;background:#f6f7f9;color:#6e7783;font-size:10px;line-height:1.6;margin-top:14px}.right{display:grid;gap:12px}.steps{padding:17px}.steps h3,.source h3,.features h3{font-size:12px;margin:0}.step{display:flex;gap:9px;margin-top:12px;font-size:10px;color:#606a76;line-height:1.5}.n{width:20px;height:20px;border-radius:50%;background:#edf0f4;color:var(--navy);display:grid;place-items:center;font-weight:700;flex:none}.step strong{display:block;color:#313840;font-size:10px}.source{padding:16px}.source ul{list-style:none;padding:0;margin:10px 0 0}.source li{padding:8px 0;border-top:1px solid var(--line);font-size:10px}.source a{color:var(--navy);text-decoration:none}.source a:hover{text-decoration:underline}.features{margin-top:17px;padding:16px 17px}.featuregrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:11px}.feature{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px;text-align:left;cursor:pointer;color:var(--text)}.feature:hover,.feature.selected{border-color:#8296b3;background:#f6f8fb}.feature strong{display:block;font-size:10px}.feature small{display:block;color:var(--muted);font-size:9px;margin-top:4px;line-height:1.5}.output{display:none;margin-top:17px}.output.show{display:block}.outcard{padding:17px;margin-top:11px}.outhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.outhead h3{font-size:13px;margin:0}.badge{border-radius:20px;background:#f7f0e8;color:var(--warn);font-weight:700;font-size:9px;padding:5px 8px}.answer{white-space:pre-wrap;font-size:12px;line-height:1.8;margin:12px 0}.list{margin:10px 0}.list h4{font-size:10px;margin:0 0 5px}.list ul{margin:0;padding-left:18px;font-size:10px;color:#59636e}.checks{padding:10px 12px;background:#f6f7f9;border-radius:9px;margin-top:12px;font-size:10px;color:#58626e}.draft{white-space:pre-wrap;border:1px solid var(--line);background:#fbfbfc;border-radius:9px;padding:12px;font-size:10px;line-height:1.7;margin-top:7px}.ref{font-size:10px;margin-top:9px}.ref a{color:var(--navy)}.warn{color:var(--warn);font-size:9px}.error{color:#9d2e2e;background:#fff1f1;padding:9px;border-radius:8px;font-size:10px}.footer{font-size:9px;line-height:1.7;color:#8d96a0;margin-top:18px}.footer a{color:var(--navy)}@media(max-width:850px){.sidebar{width:62px;padding:15px 7px}.brand{font-size:0;padding:4px 7px 12px}.brand:after{content:"서울";font-size:13px}.side-btn{justify-content:center;padding:11px 4px}.side-btn .label,.side-note,.side-sep,.status-side{display:none}.grid{grid-template-columns:1fr}.right{grid-template-columns:1fr 1fr}}@media(max-width:570px){.app{display:block;padding-bottom:61px}.sidebar{position:fixed;z-index:4;bottom:0;left:0;right:0;width:auto;height:60px;padding:5px 12px;display:flex;flex-direction:row;justify-content:space-around;border-right:0;border-top:1px solid var(--line)}.brand,.side-note,.side-sep,.status-side{display:none}.side-btn{display:grid;gap:0;justify-items:center;font-size:8px;padding:5px 8px}.side-btn .label{display:block}.ico{font-size:16px}.topbar{height:51px;padding:0 14px}.content{padding:23px 13px 28px}.hero{display:block}.asof{display:inline-block;margin-top:10px}.right{grid-template-columns:1fr}.featuregrid{grid-template-columns:1fr}.feature{display:flex;justify-content:space-between;align-items:center}.fields{grid-template-columns:1fr 1fr}.card{padding:14px}}
-.go{font-family:inherit;font-size:11px;font-weight:700}.tbtn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 11px;color:var(--navy);font:inherit;font-size:10px;cursor:pointer}.tbtn:hover{background:var(--pale)}.top-actions{display:flex;align-items:center;gap:10px}.modal-backdrop{position:fixed;inset:0;background:#182437cc;z-index:9999;display:grid;place-items:center;padding:16px;overflow:auto}.modal{width:min(480px,100%);background:#fff;border-radius:14px;padding:21px;box-shadow:0 20px 70px #0003;position:relative}.modal h2{font-size:17px;margin:0 0 5px}.modal p{font-size:11px;color:var(--muted);margin:0 0 14px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.modal-status{font-size:11px;margin-top:10px;color:var(--ok)}.question-summary{display:flex;gap:10px;align-items:flex-start;background:#f7f8fa;border-radius:9px;padding:11px 13px;margin:10px 0 15px}.question-summary p{flex:1;margin:0;font-size:12px;color:#445064;white-space:pre-wrap}.question-summary span{font-size:10px;color:var(--muted);font-weight:700}
-body{background:#fff}.app{display:flex;min-height:100vh}.sidebar{display:flex;width:238px;position:sticky;top:0;height:100vh;padding:20px 14px;gap:4px}.sidebar .brand{padding-bottom:20px}.sidebar .side-btn{font-size:12px}.main{min-width:0;flex:1}.topbar{height:58px;border-bottom:0;background:transparent;padding:0 clamp(18px,4vw,54px)}.topbar .crumb{font-size:15px;color:var(--navy)}.content{max-width:1080px;padding:clamp(42px,8vh,82px) clamp(20px,4vw,52px) 60px}.landing{text-align:center;max-width:760px;margin:0 auto}.landing .eyebrow{margin-bottom:10px}.landing h1{font:800 clamp(30px,5vw,43px)/1.22 "Nanum Myeongjo",Pretendard,serif;letter-spacing:-1.1px;margin:0;color:#192943}.landing p{color:var(--muted);font-size:14px;margin:13px 0 28px}.askbar{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:24px;background:#fff;padding:9px 11px 9px 19px;box-shadow:0 3px 14px #1b2e4a0c;text-align:left}.askbar textarea{flex:1;min-height:32px;max-height:110px;border:0;outline:0;resize:vertical;font:inherit;font-size:14px;color:var(--text);padding:3px 0}.askbar button{width:40px;height:40px;border:0;border-radius:50%;background:var(--navy);color:white;font-size:20px;cursor:pointer;flex:none}.askbar button:hover{background:var(--navy2)}.ask-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;padding:7px 10px 0}.suggestions{display:grid;gap:3px;text-align:left;margin:23px 4px 0}.suggestion{width:100%;display:flex;gap:12px;align-items:center;border:0;border-radius:9px;background:transparent;color:var(--navy);text-align:left;padding:10px 9px;font:inherit;font-size:13px;cursor:pointer}.suggestion:hover{background:#f6f7f9}.suggestion-icon{width:21px;text-align:center;font-size:15px}.hintline{text-align:center;color:#87909b;font-size:10px;margin:18px 0}.workflow{margin-top:24px}.workflow-head{display:flex;align-items:center;gap:12px;margin:0 0 12px}.workflow-head h2{font-size:17px;margin:0}.workflow-head .tbtn{font-size:12px}.topic-note{font-size:11px;color:var(--muted);margin:0 0 10px}.hug-note{border:1px solid #f1dfc9;background:#fff9f1;color:#795018;border-radius:9px;padding:11px;font-size:11px;line-height:1.6;margin:10px 0}.topic-fields{margin-top:12px}.grid{grid-template-columns:minmax(0,1.35fr) minmax(260px,.72fr)}.right{grid-template-columns:1fr}.footer{max-width:1080px;margin:18px auto 0}.modal{max-height:90vh;overflow:auto}@media(max-width:850px){.sidebar{width:70px;padding:15px 7px}.sidebar .brand{font-size:0;padding:4px 7px 12px}.sidebar .brand:after{content:"주거";font-size:13px}.sidebar .side-btn{justify-content:center;padding:11px 4px}.sidebar .side-btn .label,.sidebar .side-note,.sidebar .side-sep,.sidebar .status-side{display:none}.grid{grid-template-columns:1fr}.right{grid-template-columns:1fr 1fr}}@media(max-width:620px){.app{display:block;padding-bottom:63px}.sidebar{position:fixed;z-index:10;bottom:0;left:0;right:0;top:auto;width:auto;height:62px;padding:4px 6px;display:flex;flex-direction:row;justify-content:space-around;border-right:0;border-top:1px solid var(--line)}.sidebar .brand,.sidebar .side-note,.sidebar .side-sep,.sidebar .status-side{display:none}.sidebar .side-btn{display:grid;gap:0;justify-items:center;font-size:8px;padding:5px 6px}.sidebar .side-btn .label{display:block;font-size:8px}.sidebar .ico{font-size:15px}.topbar{height:52px;padding:0 15px}.content{padding:38px 15px 35px}.landing p{font-size:12px}.askbar{padding-left:14px}.askbar textarea{font-size:12px}.suggestion{font-size:12px;padding:9px}.right{grid-template-columns:1fr}.fields{grid-template-columns:1fr}.card{padding:15px}.workflow-head{align-items:flex-start;flex-direction:column;gap:5px}}
-.doc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.tbtn.primary{background:#223a5e;color:#fff;border-color:#223a5e}.doc-library a{font-weight:600}.rent-panel{margin:15px 0;padding:15px;border:1px solid #e4e9f0;border-radius:12px;background:linear-gradient(145deg,#fff,#f7f9fc)}.rent-title{display:flex;justify-content:space-between;gap:10px;align-items:center}.rent-title b{display:block;font-size:12px;color:#223a5e}.rent-title small{display:block;font-size:9px;color:#78818d}.rent-title>span{font-size:9px;color:#526a8b;background:#edf2f8;border-radius:20px;padding:5px 8px}.stat-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.stat-kpis article{padding:10px;border-radius:9px;background:#fff;border:1px solid #e8ecf1}.stat-kpis small{display:block;color:#78818d;font-size:9px}.stat-kpis strong{display:block;color:#223a5e;font-size:13px;margin-top:3px}.rent-panel h4{font-size:10px;margin:14px 0 8px}.stat-row{display:grid;grid-template-columns:55px minmax(50px,1fr) 52px;gap:7px;align-items:center;margin:7px 0;font-size:9px;color:#526071}.stat-row small{grid-column:2/4;font-size:8px;color:#78818d}.stat-row b{text-align:right}.stat-track{height:8px;background:#eaf0f6;border-radius:8px;overflow:hidden}.stat-track i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#657fa5,#bd7b73)}@media(max-width:620px){.stat-kpis{gap:5px}.stat-kpis article{padding:8px}.stat-kpis strong{font-size:11px}}
-body{zoom:1.05}
+:root{--navy:#223a5e;--navy2:#1b2e4a;--accent:#a23b3b;--bg:#f7f8fa;--paper:#fff;--text:#1f2328;--muted:#78818d;--line:#e5e8ed;--soft:#f2f4f7;--ok:#1f7a4d;--warn:#a15e13;--pale:#eef2f8}*{box-sizing:border-box}.hidden{display:none!important}body{margin:0;background:var(--bg);color:var(--text);font:17.5px/1.65 Pretendard,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}.app{min-height:100vh;display:flex}.sidebar{width:220px;flex:none;background:#fff;border-right:1px solid var(--line);padding:17px 12px;display:flex;flex-direction:column;gap:6px}.brand{font-size:20px;font-weight:800;padding:4px 10px 15px}.brand span{color:var(--accent)}.side-btn{display:flex;align-items:center;gap:9px;text-decoration:none;color:#404750;padding:10px 11px;border-radius:8px;font-size:15px}.side-btn:hover,.side-btn.active{background:var(--pale);color:var(--navy);font-weight:700}.ico{width:18px;text-align:center}.side-sep{height:1px;background:var(--line);margin:8px 4px}.side-note{font-size:12.5px;color:var(--muted);padding:0 10px;line-height:1.8}.status-side{margin-top:auto;color:var(--muted);font-size:12.5px;padding:10px}.main{flex:1;min-width:0}.topbar{height:58px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(17px,4vw,54px);font-size:13.75px}.crumb{color:var(--muted)}.live{padding:5px 9px;border-radius:30px;background:#edf6f0;color:var(--ok);font-weight:700}.content{max-width:1120px;margin:auto;padding:35px clamp(16px,4vw,52px) 60px}.eyebrow{font-size:12.5px;font-weight:800;color:var(--accent);letter-spacing:1.1px}.hero{display:flex;justify-content:space-between;gap:18px;align-items:end;margin:8px 0 23px}.hero h1{font:800 clamp(26px,3vw,35px)/1.25 "Nanum Myeongjo",Pretendard,serif;letter-spacing:-1px;margin:0}.hero p{font-size:15px;color:var(--muted);margin:8px 0 0}.asof{font-size:12.5px;color:var(--muted);white-space:nowrap;border:1px solid var(--line);background:white;border-radius:20px;padding:7px 10px}.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.72fr);gap:15px;align-items:start}.card{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:18px;box-shadow:0 2px 10px #1b2e4a08}.head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.head h2{font-size:16.25px;margin:0}.label{font-size:11.25px;color:var(--muted)}.stage{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.stage button,.mode button{background:white;border:1px solid var(--line);border-radius:9px;padding:10px;color:#59626e;font:inherit;font-size:13.75px;cursor:pointer}.stage button.selected,.mode button.selected{border-color:#6e84a7;background:#f0f3f8;color:var(--navy);font-weight:700}.fields{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.field{margin:7px 0;display:grid;gap:4px}.field label{font-size:12.5px;font-weight:700}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff;padding:9px 10px;font:inherit;font-size:13.75px;color:var(--text)}.field textarea{min-height:58px;resize:vertical}.field .hint{font-size:11.25px;color:var(--muted)}.checkrow{display:flex;gap:8px;align-items:center;font-size:12.5px;color:#56606b;margin:9px 0}.checkrow input{accent-color:var(--navy)}.mode{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.mode button{padding:7px 9px;font-size:12.5px}.go{width:100%;border:0;border-radius:9px;background:var(--navy);color:white;font:700 11px inherit;padding:12px;cursor:pointer}.go:hover{background:var(--navy2)}.go:disabled{opacity:.55;cursor:wait}.privacy{font-size:11.25px;color:#8a929c;margin:9px 0 0}.statusbox{padding:12px;border-radius:10px;background:#f6f7f9;color:#6e7783;font-size:12.5px;line-height:1.6;margin-top:14px}.right{display:grid;gap:12px}.steps{padding:17px}.steps h3,.source h3,.features h3{font-size:15px;margin:0}.step{display:flex;gap:9px;margin-top:12px;font-size:12.5px;color:#606a76;line-height:1.5}.n{width:20px;height:20px;border-radius:50%;background:#edf0f4;color:var(--navy);display:grid;place-items:center;font-weight:700;flex:none}.step strong{display:block;color:#313840;font-size:12.5px}.source{padding:16px}.source ul{list-style:none;padding:0;margin:10px 0 0}.source li{padding:8px 0;border-top:1px solid var(--line);font-size:12.5px}.source a{color:var(--navy);text-decoration:none}.source a:hover{text-decoration:underline}.features{margin-top:17px;padding:16px 17px}.featuregrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:11px}.feature{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px;text-align:left;cursor:pointer;color:var(--text)}.feature:hover,.feature.selected{border-color:#8296b3;background:#f6f8fb}.feature strong{display:block;font-size:12.5px}.feature small{display:block;color:var(--muted);font-size:11.25px;margin-top:4px;line-height:1.5}.output{display:none;margin-top:17px}.output.show{display:block}.outcard{padding:17px;margin-top:11px}.outhead{display:flex;justify-content:space-between;gap:10px;align-items:center}.outhead h3{font-size:16.25px;margin:0}.badge{border-radius:20px;background:#f7f0e8;color:var(--warn);font-weight:700;font-size:11.25px;padding:5px 8px}.answer{white-space:pre-wrap;font-size:15px;line-height:1.8;margin:12px 0}.list{margin:10px 0}.list h4{font-size:12.5px;margin:0 0 5px}.list ul{margin:0;padding-left:18px;font-size:12.5px;color:#59636e}.checks{padding:10px 12px;background:#f6f7f9;border-radius:9px;margin-top:12px;font-size:12.5px;color:#58626e}.draft{white-space:pre-wrap;border:1px solid var(--line);background:#fbfbfc;border-radius:9px;padding:12px;font-size:12.5px;line-height:1.7;margin-top:7px}.ref{font-size:12.5px;margin-top:9px}.ref a{color:var(--navy)}.warn{color:var(--warn);font-size:11.25px}.error{color:#9d2e2e;background:#fff1f1;padding:9px;border-radius:8px;font-size:12.5px}.footer{font-size:11.25px;line-height:1.7;color:#8d96a0;margin-top:18px}.footer a{color:var(--navy)}@media(max-width:850px){.sidebar{width:62px;padding:15px 7px}.brand{font-size:0;padding:4px 7px 12px}.brand:after{content:"서울";font-size:16.25px}.side-btn{justify-content:center;padding:11px 4px}.side-btn .label,.side-note,.side-sep,.status-side{display:none}.grid{grid-template-columns:1fr}.right{grid-template-columns:1fr 1fr}}@media(max-width:570px){.app{display:block;padding-bottom:61px}.sidebar{position:fixed;z-index:4;bottom:0;left:0;right:0;width:auto;height:60px;padding:5px 12px;display:flex;flex-direction:row;justify-content:space-around;border-right:0;border-top:1px solid var(--line)}.brand,.side-note,.side-sep,.status-side{display:none}.side-btn{display:grid;gap:0;justify-items:center;font-size:10px;padding:5px 8px}.side-btn .label{display:block}.ico{font-size:20px}.topbar{height:51px;padding:0 14px}.content{padding:23px 13px 28px}.hero{display:block}.asof{display:inline-block;margin-top:10px}.right{grid-template-columns:1fr}.featuregrid{grid-template-columns:1fr}.feature{display:flex;justify-content:space-between;align-items:center}.fields{grid-template-columns:1fr 1fr}.card{padding:14px}}
+.go{font-family:inherit;font-size:13.75px;font-weight:700}.tbtn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 11px;color:var(--navy);font:inherit;font-size:12.5px;cursor:pointer}.tbtn:hover{background:var(--pale)}.top-actions{display:flex;align-items:center;gap:10px}.modal-backdrop{position:fixed;inset:0;background:#182437cc;z-index:9999;display:grid;place-items:center;padding:16px;overflow:auto}.modal{width:min(480px,100%);background:#fff;border-radius:14px;padding:21px;box-shadow:0 20px 70px #0003;position:relative}.modal h2{font-size:21.25px;margin:0 0 5px}.modal p{font-size:13.75px;color:var(--muted);margin:0 0 14px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.modal-status{font-size:13.75px;margin-top:10px;color:var(--ok)}.question-summary{display:flex;gap:10px;align-items:flex-start;background:#f7f8fa;border-radius:9px;padding:11px 13px;margin:10px 0 15px}.question-summary p{flex:1;margin:0;font-size:15px;color:#445064;white-space:pre-wrap}.question-summary span{font-size:12.5px;color:var(--muted);font-weight:700}
+body{background:#fff}.app{display:flex;min-height:100vh}.sidebar{display:flex;width:238px;position:sticky;top:0;height:100vh;padding:20px 14px;gap:4px}.sidebar .brand{padding-bottom:20px}.sidebar .side-btn{font-size:15px}.main{min-width:0;flex:1}.topbar{height:58px;border-bottom:0;background:transparent;padding:0 clamp(18px,4vw,54px)}.topbar .crumb{font-size:18.75px;color:var(--navy)}.content{max-width:1080px;padding:clamp(42px,8vh,82px) clamp(20px,4vw,52px) 60px}.landing{text-align:center;max-width:760px;margin:0 auto}.landing .eyebrow{margin-bottom:10px}.landing h1{font:800 clamp(30px,5vw,43px)/1.22 "Nanum Myeongjo",Pretendard,serif;letter-spacing:-1.1px;margin:0;color:#192943}.landing p{color:var(--muted);font-size:17.5px;margin:13px 0 28px}.askbar{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:24px;background:#fff;padding:9px 11px 9px 19px;box-shadow:0 3px 14px #1b2e4a0c;text-align:left}.askbar textarea{flex:1;min-height:32px;max-height:110px;border:0;outline:0;resize:vertical;font:inherit;font-size:17.5px;color:var(--text);padding:3px 0}.askbar button{width:40px;height:40px;border:0;border-radius:50%;background:var(--navy);color:white;font-size:25px;cursor:pointer;flex:none}.askbar button:hover{background:var(--navy2)}.ask-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13.75px;padding:7px 10px 0}.suggestions{display:grid;gap:3px;text-align:left;margin:23px 4px 0}.suggestion{width:100%;display:flex;gap:12px;align-items:center;border:0;border-radius:9px;background:transparent;color:var(--navy);text-align:left;padding:10px 9px;font:inherit;font-size:16.25px;cursor:pointer}.suggestion:hover{background:#f6f7f9}.suggestion-icon{width:21px;text-align:center;font-size:18.75px}.hintline{text-align:center;color:#87909b;font-size:12.5px;margin:18px 0}.workflow{margin-top:24px}.workflow-head{display:flex;align-items:center;gap:12px;margin:0 0 12px}.workflow-head h2{font-size:21.25px;margin:0}.workflow-head .tbtn{font-size:15px}.topic-note{font-size:13.75px;color:var(--muted);margin:0 0 10px}.hug-note{border:1px solid #f1dfc9;background:#fff9f1;color:#795018;border-radius:9px;padding:11px;font-size:13.75px;line-height:1.6;margin:10px 0}.topic-fields{margin-top:12px}.grid{grid-template-columns:minmax(0,1.35fr) minmax(260px,.72fr)}.right{grid-template-columns:1fr}.footer{max-width:1080px;margin:18px auto 0}.modal{max-height:90vh;overflow:auto}@media(max-width:850px){.sidebar{width:70px;padding:15px 7px}.sidebar .brand{font-size:0;padding:4px 7px 12px}.sidebar .brand:after{content:"주거";font-size:16.25px}.sidebar .side-btn{justify-content:center;padding:11px 4px}.sidebar .side-btn .label,.sidebar .side-note,.sidebar .side-sep,.sidebar .status-side{display:none}.grid{grid-template-columns:1fr}.right{grid-template-columns:1fr 1fr}}@media(max-width:620px){.app{display:block;padding-bottom:63px}.sidebar{position:fixed;z-index:10;bottom:0;left:0;right:0;top:auto;width:auto;height:62px;padding:4px 6px;display:flex;flex-direction:row;justify-content:space-around;border-right:0;border-top:1px solid var(--line)}.sidebar .brand,.sidebar .side-note,.sidebar .side-sep,.sidebar .status-side{display:none}.sidebar .side-btn{display:grid;gap:0;justify-items:center;font-size:10px;padding:5px 6px}.sidebar .side-btn .label{display:block;font-size:10px}.sidebar .ico{font-size:18.75px}.topbar{height:52px;padding:0 15px}.content{padding:38px 15px 35px}.landing p{font-size:15px}.askbar{padding-left:14px}.askbar textarea{font-size:15px}.suggestion{font-size:15px;padding:9px}.right{grid-template-columns:1fr}.fields{grid-template-columns:1fr}.card{padding:15px}.workflow-head{align-items:flex-start;flex-direction:column;gap:5px}}
+.doc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.tbtn.primary{background:#223a5e;color:#fff;border-color:#223a5e}.doc-library a{font-weight:600}.rent-panel{margin:15px 0;padding:15px;border:1px solid #e4e9f0;border-radius:12px;background:linear-gradient(145deg,#fff,#f7f9fc)}.rent-title{display:flex;justify-content:space-between;gap:10px;align-items:center}.rent-title b{display:block;font-size:15px;color:#223a5e}.rent-title small{display:block;font-size:11.25px;color:#78818d}.rent-title>span{font-size:11.25px;color:#526a8b;background:#edf2f8;border-radius:20px;padding:5px 8px}.stat-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.stat-kpis article{padding:10px;border-radius:9px;background:#fff;border:1px solid #e8ecf1}.stat-kpis small{display:block;color:#78818d;font-size:11.25px}.stat-kpis strong{display:block;color:#223a5e;font-size:16.25px;margin-top:3px}.rent-panel h4{font-size:12.5px;margin:14px 0 8px}.stat-row{display:grid;grid-template-columns:55px minmax(50px,1fr) 52px;gap:7px;align-items:center;margin:7px 0;font-size:11.25px;color:#526071}.stat-row small{grid-column:2/4;font-size:10px;color:#78818d}.stat-row b{text-align:right}.stat-track{height:8px;background:#eaf0f6;border-radius:8px;overflow:hidden}.stat-track i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#657fa5,#bd7b73)}@media(max-width:620px){.stat-kpis{gap:5px}.stat-kpis article{padding:8px}.stat-kpis strong{font-size:13.75px}}
+
+/* Text sizes increased without zooming layout or touch targets. */
+.brand {color:var(--navy); text-decoration:none; display:block; overflow-wrap:anywhere}
+.brand:hover,.brand:focus-visible {text-decoration:underline}
+.side-btn {border:0; background:none; font-family:inherit; text-align:left}
+.sidebar .side-btn .label {color:inherit; font-size:inherit}
+.topbar {height:24px}
+.mobile-home {display:none}
+.landing h1 {font-size:clamp(34px, 5.5vw, 51px)}
+.go {font-size:1rem}
+.field label,.field input,.field select,.field textarea {font-size:1rem}
+.field :is(input,select,textarea):focus-visible {outline:2px solid var(--navy); outline-offset:2px}
+.grid:has(.right > .hidden) {grid-template-columns:minmax(0,1fr)}
+.grid:has(.right > .hidden) .right {display:none}
+.output {display:block; scroll-margin-top:12px}
+.outcard {font-size:1rem; padding:clamp(16px, 4vw, 28px); overflow-wrap:anywhere}
+.outcard h3 {font-size:1.35rem; margin:0 0 12px}
+.outcard h4 {font-size:1.05rem; margin:0 0 8px}
+.outcard h5 {font-size:.95rem; margin:8px 0 4px}
+.outcard :is(a,summary) {color:var(--navy); text-underline-offset:.18em; font-weight:650}
+.outcard summary {cursor:pointer}
+.answer {font-size:1.05rem; line-height:1.65; margin:0 0 16px}
+.result-section {margin:18px 0; border-top:1px solid var(--line); padding-top:14px}
+.result-section ul {margin:0; padding-left:1.3rem}
+.result-section li {padding:4px 0}
+.result-grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr)); gap:10px}
+.result-grid article {border:1px solid var(--line); border-radius:8px; padding:12px}
+.result-grid p,.result-note {font-size:.94rem; color:#4f5a68; margin:6px 0}
+.excerpt div {white-space:pre-wrap; max-height:200px; overflow:auto; background:var(--soft); padding:8px}
+.chart-row {display:grid; grid-template-columns:minmax(5.5em, auto) minmax(22px, 1fr) minmax(4em, auto); align-items:center; gap:8px; margin:7px 0; font-size:.9rem}
+.chart-row b {text-align:right}
+.outcard select {font:inherit; margin-bottom:12px; padding:5px; border-radius:5px; border:1px solid #b8c5d4}
+.input-summary {padding:8px 10px; background:var(--pale); border-radius:6px}
+.doc-actions a {align-self:center}
+@media (max-width:850px) {
+  .sidebar .brand {font-size:0}
+  .sidebar .brand:after {content:"홈"}
+}
+@media (max-width:620px) {
+  .topbar {height:46px}
+  .mobile-home {display:block; font-weight:bold; text-decoration:none}
+  .sidebar {justify-content:flex-start; gap:5px; overflow-x:auto}
+  .sidebar .side-btn {min-width:65px}
+  .sidebar .side-btn .label {font-size:10px}
+}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="sidebar" aria-label="주거 도우미 기능 메뉴">
-    <div class="brand">AI <span>주거</span> 도우미</div>
-    <button class="side-btn active" type="button" data-nav="support"><span class="ico">⌕</span><span class="label">맞춤 주거 상담</span></button>
+    <a class="brand" id="homeLink" href="/" aria-label="AI 서울 주거 도우미 홈">AI 서울 <span>주거</span> 도우미</a>
+    <button class="side-btn" type="button" data-nav="support"><span class="ico">⌕</span><span class="label">맞춤 주거 상담</span></button>
     <button class="side-btn" type="button" data-nav="recommend"><span class="ico">✳</span><span class="label">제도·복지 추천</span></button>
     <button class="side-btn" type="button" data-nav="listings"><span class="ico">⌂</span><span class="label">공공임대·시세 찾기</span></button>
     <button class="side-btn" type="button" data-nav="contract"><span class="ico">▤</span><span class="label">계약서 초안·점검</span></button>
@@ -27,14 +71,13 @@ body{zoom:1.05}
     <div class="status-side">공식 자료 출처와 기준일을 함께 표시합니다.</div>
   </aside>
   <main class="main">
-    <div class="topbar"><div class="crumb"><b>AI 주거 도우미</b></div><div class="top-actions"><span class="live" id="apiStatus">서버 API 설정 확인 중</span></div></div>
+    <header class="topbar"><a class="crumb mobile-home" href="/">AI 서울 주거 도우미</a></header>
     <div class="content">
       <section class="landing" id="landing">
-        <div class="eyebrow">AI HOUSING ASSISTANT · SEOUL</div>
         <h1>어떤 주거 문제가 궁금하세요?</h1>
         <p>서울시 조례에서 확인되는 내용과 공고에서 확인할 기준을 나눠 안내하고, 문의·신청 준비로 이어드립니다.</p>
         <div class="askbar"><textarea id="question" maxlength="500" rows="1" placeholder="예) 청년 월세 지원을 신청하려면 어떤 서류가 필요한가요?"></textarea><button id="beginQuestion" type="button" aria-label="질문 시작">↑</button></div>
-        <div class="ask-meta"><span>Enter로 시작 · Shift+Enter 줄바꿈</span><span id="questionCount">0 / 500</span></div>
+        <div class="ask-meta"><span>Enter로 질문 · Shift+Enter 줄바꿈</span><span id="questionCount">0 / 500</span></div>
         <div class="suggestions" aria-label="자주 묻는 주거 질문">
           <button class="suggestion" type="button" data-topic="recommend" data-question="제 조건에 맞는 서울 주거지원 제도와 공공임대 공고를 추천해 주세요."><span class="suggestion-icon">✳</span><span>내 조건에 맞는 주거지원 제도와 공공임대 공고를 찾고 싶어요.</span></button>
           <button class="suggestion" type="button" data-topic="support" data-question="서울 청년 월세 지원을 받으려면 언제 신청하고 어떤 서류가 필요한가요?"><span class="suggestion-icon">🧑</span><span>서울 청년 월세 지원은 언제 신청할 수 있고 서류는 무엇인가요?</span></button>
@@ -54,33 +97,34 @@ body{zoom:1.05}
         <div class="grid">
           <section class="card">
             <div class="head"><h2 id="formHeading">필요한 정보</h2><span class="label">선택 입력 · 입력값은 저장하지 않습니다</span></div>
-            <div class="hug-note hidden" id="hugNotice">상습 채무불이행자 API와 집계 통계는 서로 다른 자료입니다. <a target="_blank" rel="noopener noreferrer" href="https://www.data.go.kr/data/15134221/fileData.do">지역별 최근 3개월 평균 사고 건수·금액·사고율 ↗</a> · <a target="_blank" rel="noopener noreferrer" href="https://www.data.go.kr/data/15144220/fileData.do">전세 관련 사고·피해주택 수(경·공매 지원 신청 기준) ↗</a> · <a target="_blank" rel="noopener noreferrer" href="https://www.khug.or.kr/houstar/web/p03/01/p030105.jsp?articleId=37002&amp;currentPage=1&amp;mode=S">서울 2020~2023 사고·대위변제 현황 ↗</a>. 집계 파일은 공식 원문에서 기준일과 집계 범위를 확인합니다. 명단 검색 결과가 전세계약의 안전을 보증하지 않습니다.</div>
+            <div class="hug-note hidden" id="hugNotice">HUG가 공개한 명단에서 일치 여부를 확인합니다. 명단의 주소와 보증사고 발생 장소는 따로 확인해 주세요.</div>
             <div class="stage topic-fields" id="stageFields" role="group" aria-label="계약 상태"><button type="button" class="selected" data-stage="before">아직 계약 전이에요</button><button type="button" data-stage="after">계약했고 월세를 내고 있어요</button></div>
             <div class="fields">
-              <div class="field support-only"><label for="age">나이 (선택)</label><input id="age" type="number" min="14" max="100" placeholder="예: 27"></div>
+              <div class="field support-only age-field"><label for="age">나이 (선택)</label><input id="age" type="number" min="14" max="100" placeholder="예: 27"></div>
+              <div class="field profile-only hidden" id="profileField"><label for="profile">가구 유형 (선택)</label><select id="profile"><option value="">선택 안 함</option><option value="youth">청년</option><option value="newlywed">신혼부부·예비부부</option><option value="general">일반 가구</option></select></div>
               <div class="field profile-only hidden"><label for="district">희망 지역</label><select id="district"><option>서울 전체(구별 비교)</option><option>마포구</option><option>종로구</option><option>중구</option><option>용산구</option><option>성동구</option><option>광진구</option><option>동대문구</option><option>중랑구</option><option>성북구</option><option>강북구</option><option>도봉구</option><option>노원구</option><option>은평구</option><option>서대문구</option><option>양천구</option><option>강서구</option><option>구로구</option><option>금천구</option><option>영등포구</option><option>동작구</option><option>관악구</option><option>서초구</option><option>강남구</option><option>송파구</option><option>강동구</option></select></div>
-              <div class="field profile-only hidden"><label for="budgetRent">희망 월세 상한 (원)</label><input id="budgetRent" inputmode="numeric" placeholder="예: 600,000"></div>
-              <div class="field profile-only hidden"><label for="budgetDeposit">희망 보증금 상한 (원)</label><input id="budgetDeposit" inputmode="numeric" placeholder="예: 50,000,000"></div>
+              <div class="field profile-only hidden"><label for="budgetRent">희망 월세 상한 (원)</label><input id="budgetRent" data-money inputmode="numeric" placeholder="예: 600,000"></div>
+              <div class="field profile-only hidden"><label for="budgetDeposit">희망 보증금 상한 (원)</label><input id="budgetDeposit" data-money inputmode="numeric" placeholder="예: 50,000,000"></div>
               <div class="field hug-only hidden"><label for="landlordQuery">임대인 이름 또는 주소 일부</label><input id="landlordQuery" maxlength="120" placeholder="공개 명단과 대조할 검색어"></div>
-              <div class="field support-only"><label for="income">월평균 가구소득 (선택)</label><input id="income" inputmode="numeric" placeholder="예: 2,400,000"><span class="hint">최근 소득자료 기준 · 숫자만 입력</span></div>
-              <div class="field after-only hidden"><label for="deposit">보증금 (원)</label><input id="deposit" inputmode="numeric" placeholder="예: 10,000,000"></div>
-              <div class="field after-only hidden rent-only"><label for="rent">월세 (원)</label><input id="rent" inputmode="numeric" placeholder="예: 550,000"></div>
+              <div class="field support-only"><label for="income">월평균 가구소득 (선택)</label><input id="income" data-money inputmode="numeric" placeholder="예: 2,400,000"><span class="hint">최근 소득자료 기준 · 숫자만 입력</span></div>
+              <div class="field after-only hidden" id="depositField"><label for="deposit">보증금 (원)</label><input id="deposit" data-money inputmode="numeric" placeholder="예: 10,000,000"></div>
+              <div class="field after-only hidden rent-only"><label for="rent">월세 (원)</label><input id="rent" data-money inputmode="numeric" placeholder="예: 550,000"></div>
               <div class="field support-only"><label for="household">가구원 수 (선택)</label><select id="household"><option value="">선택 안 함</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select></div>
               <div class="field inquiry-only hidden"><label for="other">보완 요청 또는 문의 요지</label><input id="other" maxlength="300" placeholder="예: 계약서 사본을 다시 제출해 달라는 요청"></div>
             </div>
             <div class="fields contract-only hidden" id="contractFields">
               <div class="field" style="grid-column:1/-1"><label for="documentType">작성할 문서</label><select id="documentType"><option value="monthly">월세계약서 초안</option><option value="jeonse">전세계약서 초안</option><option value="sale">부동산 매매계약서 초안</option><option value="youth_monthly">서울 청년월세지원 신청 준비서류</option><option value="housing_benefit">주거급여 신청서 초안</option><option value="lease_report">주택 임대차계약 신고서 초안</option></select></div>
               <div class="field contract-detail-only"><label for="buildingType">주택 유형</label><select id="buildingType"><option>아파트</option><option>오피스텔</option><option>다세대·연립</option><option>단독·다가구</option></select></div>
-              <div class="field sale-only hidden"><label for="salePrice">매매대금 (원)</label><input id="salePrice" inputmode="numeric" placeholder="예: 500,000,000"></div>
-              <div class="field sale-only hidden"><label for="downPayment">계약금 (원)</label><input id="downPayment" inputmode="numeric" placeholder="예: 50,000,000"></div>
+              <div class="field sale-only hidden"><label for="salePrice">매매대금 (원)</label><input id="salePrice" data-money inputmode="numeric" placeholder="예: 500,000,000"></div>
+              <div class="field sale-only hidden"><label for="downPayment">계약금 (원)</label><input id="downPayment" data-money inputmode="numeric" placeholder="예: 50,000,000"></div>
               <div class="field sale-only hidden"><label for="interimPayment">중도금 (원·지급일 포함)</label><input id="interimPayment" maxlength="100" placeholder="금액 및 지급일"></div>
-              <div class="field sale-only hidden"><label for="balancePayment">잔금 (원)</label><input id="balancePayment" inputmode="numeric" placeholder="예: 400,000,000"></div>
+              <div class="field sale-only hidden"><label for="balancePayment">잔금 (원)</label><input id="balancePayment" data-money inputmode="numeric" placeholder="예: 400,000,000"></div>
               <div class="field sale-only hidden"><label for="balanceDate">잔금 예정일</label><input id="balanceDate" type="date"></div>
               <div class="field contract-detail-only"><label for="moveInDate">인도·입주 예정일</label><input id="moveInDate" type="date"></div>
               <div class="field contract-detail-only lease-only"><label for="contractStart">계약 시작일</label><input id="contractStart" type="date"></div>
               <div class="field contract-detail-only lease-only"><label for="contractEnd">계약 종료일</label><input id="contractEnd" type="date"></div>
               <div class="field contract-detail-only monthly-only"><label for="paymentDay">월세 지급일</label><input id="paymentDay" maxlength="30" placeholder="매월 25일"></div>
-              <div class="field contract-detail-only"><label for="maintenanceFee">관리비 (원)</label><input id="maintenanceFee" inputmode="numeric" placeholder="금액 또는 협의"></div>
+              <div class="field contract-detail-only"><label for="maintenanceFee">관리비 (원)</label><input id="maintenanceFee" data-money inputmode="numeric" placeholder="금액 또는 협의"></div>
               <div class="field contract-detail-only" style="grid-column:1/-1"><label for="specialTerms">합의한 특약 (선택)</label><textarea id="specialTerms" maxlength="500" placeholder="예: 반려동물 허용, 수리 책임 범위"></textarea><span class="hint">이름·상세 주소·주민등록번호·계좌번호는 입력하지 마세요. 초안에서 직접 기재할 수 있습니다.</span></div>
             </div>
             <div class="fields application-only hidden" id="applicationFields">
@@ -91,48 +135,206 @@ body{zoom:1.05}
             <label class="checkrow support-only"><input id="seoul" type="checkbox"> 서울에 주민등록을 두고 실제 거주하고 있어요</label>
             <div class="mode support-only" aria-label="바로 쓸 기능"><button class="selected" data-mode="support">지원 시기·자격 확인</button><button data-mode="application">신청서 초안</button><button data-mode="inquiry">담당기관 문의 문안</button><button data-mode="contract">계약 조건 점검</button></div>
             <button class="go" id="submit">공고·법령 확인하고 안내받기　↑</button>
-            <p class="privacy">이름·주민등록번호·상세 주소·계좌번호는 입력하지 마세요. 주거상담 정보는 Upstage Solar 답변 생성에 사용되고, 법제처에는 법령 검색어를 보냅니다.</p>
+            <p class="privacy" id="privacyNote">이름·주민등록번호·상세 주소·계좌번호는 입력하지 마세요. 주거상담 정보는 Upstage Solar 답변 생성에 사용되고, 법제처에는 법령 검색어를 보냅니다.</p>
             <div class="statusbox" id="formStatus">신청 자격과 최신 모집 일정은 공식 공고로 다시 확인하세요.</div>
           </section>
           <div class="right">
-            <section class="card steps"><h3>이어서 진행하는 단계</h3><div id="stageSteps"></div></section>
-            <section class="card source"><h3>공식 자료 연결</h3><ul><li><a target="_blank" rel="noopener noreferrer" href="https://housing.seoul.go.kr/site/main/board/notice/12667">2026년 서울시 모집 공고 ↗</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://soco.seoul.go.kr/youth/bbs/BMSR00174/view.do?boardId=6734&amp;menuNo=400043&amp;pageIndex=1">모집 상태·다음 공고 안내 ↗</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://www.data.go.kr/data/15058530/openapi.do">LH 임대공고 API 설명 ↗</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://www.data.go.kr/data/15126474/openapi.do">국토부 전월세 실거래 API 설명 ↗</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://www.khug.or.kr/houstar/web/p03/01/p030105.jsp?articleId=38236&amp;currentPage=1&amp;mode=S">HUG 상습 채무불이행자 API 설명 ↗</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://open.law.go.kr/LSO/openApi/guideList.do">법제처 Open API ↗</a></li></ul></section>
             <section class="card source doc-library hidden" id="docLibrary"><h3>공식 계약서·신청 서식 모음</h3><p class="privacy">공식 원본 양식과 AI 작성용 초안은 구분됩니다. 기관의 최신 서식과 제출 경로를 확인하세요.</p><ul><li><a target="_blank" rel="noopener noreferrer" href="https://www.moj.go.kr/moj/163/subview.do">법무부 주택임대차 표준계약서 (전세·월세) ↗</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://map.gg.go.kr/reb/selectRebFormView.do">경기부동산포털 매매·임대차 계약서 서식 ↗</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://www.myhome.go.kr/hws/portal/cont/selectHouseSalesProcedureGuideView.do">마이홈 부동산 매매 절차·표준계약서 안내 ↗</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://housing.seoul.go.kr/site/main/content/sh01_060513">서울 청년월세지원 신청·제출서류 ↗</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://www.gov.kr/mw/AA020InfoCappView.do?CappBizCD=16130000040">정부24 주거급여 제공(변경) 신청 ↗</a></li><li><a target="_blank" rel="noopener noreferrer" href="https://www.law.go.kr/법령/부동산거래신고등에관한법률시행규칙">임대차계약 신고서 법정 서식 근거 ↗</a></li></ul></section>
           </div>
         </div>
       </section>
-      <section class="output" id="output" aria-live="polite"></section>
+      <section class="output hidden" id="output" aria-live="polite"></section>
       <div class="footer">AI 주거 도우미는 공식 공고와 법령을 근거로 절차와 문서 초안을 안내합니다. 대회 채점 API <code>POST /ask</code>는 별도 경로로 유지됩니다.</div>
     </div>
   </main>
 </div>
 <script>
 'use strict';
-let stage='before', mode='support', topic='support';
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function setStage(value){stage=value;document.querySelectorAll('[data-stage]').forEach(b=>b.classList.toggle('selected',b.dataset.stage===stage));document.querySelectorAll('.after-only').forEach(el=>el.classList.toggle('hidden',stage!=='after'&&topic!=='contract'));$('formStatus').textContent=stage==='before'?'※ 2026 모집은 마감됐습니다. 다음 회차 일정은 새 공고에서 확인하세요. 계약 전에 공고 기준을 먼저 살펴볼 수 있습니다.':'※ 입력한 보증금·월세는 2026 공고상 금액 기준의 예비 대조에만 사용합니다.';$('stageSteps').innerHTML=stage==='before'?'<div class="step"><span class="n">1</span><div><strong>모집 시기 확인</strong>2026 모집 마감, 다음 일정은 새 공고에서 안내</div></div><div class="step"><span class="n">2</span><div><strong>계약 전에 기준 살펴보기</strong>주거비·소득·제외 요건 확인</div></div><div class="step"><span class="n">3</span><div><strong>신청서류 준비</strong>최신 공고의 증빙 목록 점검</div></div>':'<div class="step"><span class="n">1</span><div><strong>계약 금액 예비 대조</strong>보증금·월세 기준과 환산액 계산</div></div><div class="step"><span class="n">2</span><div><strong>추가 요건 확인</strong>소득·재산·중복수혜 등 확인</div></div><div class="step"><span class="n">3</span><div><strong>서류 초안 준비</strong>공식 양식과 최신 공고 대조</div></div>';}
-function setMode(value){mode=value;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('selected',b.dataset.mode===mode));const labels={support:'공고·법령 확인하고 안내받기　↑',application:'신청서 초안 만들기　↑',inquiry:'문의 문안 초안 만들기　↑',contract:'계약 조건 확인하기　↑',recommend:'조건에 맞는 제도·공고 추천받기　↑',listings:'공공임대·실거래 자료 찾기　↑',hug:'HUG 공개명단 조회하기　↑'};$('submit').textContent=labels[mode]||'계속하기　↑'}
-function setTopic(value){topic=value;const names={support:'서울 청년월세지원',recommend:'내 조건에 맞는 제도·복지 추천',listings:'공공임대 공고·전월세 실거래 찾기',contract:'전세계약 조건 점검',documents:'계약서·신청서 PDF 작성',inquiry:'신청서·주거 민원 작성',hug:'HUG 상습 채무불이행자 공개명단'};const notes={support:'계약 전·후 상태에 맞춰 서울 청년월세지원 공고와 법령을 확인합니다.',recommend:'희망 지역과 예산에 맞춰 제도·LH 공공임대 공고를 찾고, 국토부 최근 실거래를 참고자료로 비교합니다.',listings:'LH 공공임대 모집공고와 국토부에 신고된 최근 아파트 전월세 실거래 사례를 분리해 보여드립니다. 실거래는 현재 매물이 아닙니다.',contract:'입력한 조건으로 임대차계약서 초안을 만들고, 임대차 법령 확인사항을 함께 제공합니다.',inquiry:'보완 요청이나 상황을 정리해 담당 기관 문의·민원 초안을 작성합니다.',hug:'HUG가 공개한 상습 채무불이행자 명단 API에서 이름 또는 주소 일부를 검색합니다. 집계 통계 API가 아닙니다.',documents:'매매·전세·월세 계약서와 주거지원 신청서 초안을 작성하고, 브라우저에서 PDF로 저장합니다. 공식 원본 서식 링크도 함께 제공합니다.'};$('landing').classList.add('hidden');$('workflow').classList.remove('hidden');$('workflowTitle').textContent=names[topic]||'주거 문제 상담';$('workflowNote').textContent=notes[topic]||'';$('questionSummary').textContent=questionInput.value.trim();document.querySelectorAll('.support-only').forEach(el=>el.classList.toggle('hidden',topic!=='support'));document.querySelectorAll('.profile-only').forEach(el=>el.classList.toggle('hidden',topic!=='recommend'&&topic!=='listings'));document.querySelectorAll('.inquiry-only').forEach(el=>el.classList.toggle('hidden',topic!=='inquiry'));document.querySelectorAll('.hug-only').forEach(el=>el.classList.toggle('hidden',topic!=='hug'));document.querySelectorAll('.contract-only').forEach(el=>el.classList.toggle('hidden',topic!=='contract'&&topic!=='documents'));document.querySelectorAll('.application-only').forEach(el=>el.classList.add('hidden'));$('docLibrary').classList.toggle('hidden',topic!=='documents');$('stageFields').classList.toggle('hidden',topic!=='support');$('hugNotice').classList.toggle('hidden',topic!=='hug');if(topic==='documents'){setMode('contract');setStage('after');$('formHeading').textContent='문서 종류와 조건';$('docLibrary').classList.remove('hidden');selectDocumentType();$('stageSteps').innerHTML='<div class="step"><span class="n">1</span><div><strong>문서 종류 선택</strong>매매·전세·월세 또는 신청서</div></div><div class="step"><span class="n">2</span><div><strong>조건 입력</strong>신원정보는 빈칸으로 두고 필요한 거래 조건만 입력</div></div><div class="step"><span class="n">3</span><div><strong>초안 확인·PDF 저장</strong>내용 검토 후 인쇄 창에서 PDF로 저장</div></div>'}else if(topic==='contract'){setMode('contract');setStage('after')}else if(topic==='inquiry'){setMode('inquiry');$('formHeading').textContent='문의에 필요한 정보';$('stageSteps').innerHTML='<div class="step"><span class="n">1</span><div><strong>요청 내용 정리</strong>받은 보완사항이나 문의 요지 입력</div></div><div class="step"><span class="n">2</span><div><strong>담당 기관 확인</strong>공식 공고의 문의 경로 확인</div></div><div class="step"><span class="n">3</span><div><strong>문의 문안 초안</strong>사실관계는 빈칸으로 두고 작성</div></div>'}else if(topic==='hug'){setMode('hug');$('formHeading').textContent='공개명단 검색';$('formStatus').textContent='HUG API 연결 설정에서 공개명단 API 키를 입력해 주세요.';$('stageSteps').innerHTML='<div class="step"><span class="n">1</span><div><strong>검색어 입력</strong>임대인 이름 또는 주소 일부</div></div><div class="step"><span class="n">2</span><div><strong>HUG 공개 API 조회</strong>응답 원문 필드를 보존해 표시</div></div><div class="step"><span class="n">3</span><div><strong>계약 안전 확인</strong>검색 일치와 보증가입 가능 여부는 별개</div></div>'}else if(topic==='recommend'||topic==='listings'){setMode(topic);$('formHeading').textContent='희망 조건';$('formStatus').textContent='MOLIT_API_KEY(국토부) 또는 PUBLIC_DATA_API_KEY가 필요합니다. LH 공고에는 PUBLIC_DATA_API_KEY가 필요하고, 실거래는 현재 매물이 아닌 참고 사례입니다.';$('stageSteps').innerHTML='<div class="step"><span class="n">1</span><div><strong>지역·예산 입력</strong>주소 대신 구 단위로 선택</div></div><div class="step"><span class="n">2</span><div><strong>공공 정보 조회</strong>LH 공고와 국토부 실거래 API</div></div><div class="step"><span class="n">3</span><div><strong>조건별 요약</strong>Solar가 조회 결과와 법령 근거를 종합</div></div>'}else{setMode('support');$('formHeading').textContent='월세지원에 필요한 정보';setStage('before')}$('output').classList.remove('show');document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===topic));$('workflow').scrollIntoView({behavior:'smooth',block:'start'});const focusId={support:'age',recommend:'district',listings:'district',contract:'deposit',documents:'documentType',inquiry:'other',hug:'landlordQuery'}[topic];if(focusId)$(focusId).focus()}
-function selectDocumentType(){const type=$('documentType').value,contract=['sale','jeonse','monthly'].includes(type);const names={sale:'부동산 매매계약서 초안',jeonse:'전세계약서 초안',monthly:'월세계약서 초안',youth_monthly:'서울 청년월세지원 신청 준비서류',housing_benefit:'주거급여 신청서 초안',lease_report:'주택 임대차계약 신고서 초안'};$('workflowTitle').textContent=names[type]||'문서 초안 작성';$('applicationFields').classList.toggle('hidden',contract);document.querySelectorAll('.sale-only').forEach(el=>el.classList.toggle('hidden',type!=='sale'));document.querySelectorAll('.contract-detail-only').forEach(el=>el.classList.toggle('hidden',!contract));document.querySelectorAll('.after-only').forEach(el=>el.classList.toggle('hidden',!contract||type==='sale'));document.querySelectorAll('.rent-only,.monthly-only').forEach(el=>el.classList.toggle('hidden',type!=='monthly'));document.querySelectorAll('.lease-only').forEach(el=>el.classList.toggle('hidden',type==='sale')); setMode(contract?'contract':'application');$('docLibrary').classList.toggle('hidden',contract&&topic!=='documents');$('formStatus').textContent=contract?'개인정보 대신 계약 조건만 입력하세요. 초안은 PDF 저장용이며 법무부 등 공식 표준서식의 원본이 아닙니다.':'신청서 초안은 제출용 공식 서식과 다를 수 있습니다. 기관의 최신 양식과 공고를 확인하고 필요한 정보는 직접 보완하세요.'}
-function configureHugStats(){topic='hugstats';mode='hugstats';$('landing').classList.add('hidden');$('workflow').classList.remove('hidden');$('workflowTitle').textContent='HUG 전세보증 사고 통계';$('workflowNote').textContent='HUG 공개 파일의 사고건수·사고금액·사고율·피해주택·대위변제 자료를 기준일과 함께 확인합니다.';$('questionSummary').textContent=$('question').value.trim();$('formHeading').textContent='공식 통계 자료';$('formStatus').textContent='통계 API가 아닌 HUG 공식 파일 데이터와 공시자료입니다. 아래 버튼을 누르면 범위·기준일과 원문 링크를 보여줍니다.';document.querySelectorAll('.support-only,.profile-only,.inquiry-only,.hug-only').forEach(el=>el.classList.add('hidden'));$('stageFields').classList.add('hidden');$('hugNotice').classList.add('hidden');$('stageSteps').innerHTML='<div class="step"><span class="n">1</span><div><strong>사고건수·금액·사고율</strong>지역별 최근 3개월 평균 파일</div></div><div class="step"><span class="n">2</span><div><strong>피해주택 수</strong>경·공매지원 신청 기준과 기간 표시</div></div><div class="step"><span class="n">3</span><div><strong>대위변제 현황</strong>서울 과거 자료와 HUG 공시 연결</div></div>';setMode('hugstats');document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav==='hugstats'));$('output').classList.remove('show');$('workflow').scrollIntoView({behavior:'smooth',block:'start'})}
-function chooseTopic(value,question){if(question)$('question').value=question;$('questionCount').textContent=$('question').value.length+' / 500';if(value==='hugstats'){configureHugStats();return}setTopic(value)}
-function classifyQuestion(value){const q=value.toLowerCase();if(/pdf|PDF|신청 서류|계약서 초안/.test(q))return'documents';if(/사고 통계|사고건수|사고 건수|사고율|대위변제|피해주택/.test(q))return'hugstats';if(/상습 채무|채무불이행자|임대인 명단|hug 명단/.test(q))return'hug';if(/매물|실거래|공공임대|전월세 시세|주택을 찾|집을 찾/.test(q))return'listings';if(/추천|내 조건|주거지원 제도|복지/.test(q))return'recommend';if(/전세보증/.test(q))return'hugstats';if(/계약서|전세계약|보증금|월세 금액/.test(q))return'contract';if(/민원|문의|보완 요청|담당기관/.test(q))return'inquiry';return'support'}
-document.querySelectorAll('[data-stage]').forEach(b=>b.onclick=()=>setStage(b.dataset.stage));document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>chooseTopic(b.dataset.topic,b.dataset.question));
-const navQuestions={support:'서울 청년 월세 지원을 받으려면 언제 신청하고 어떤 서류가 필요한가요?',recommend:'제 조건에 맞는 주거지원 제도와 공공임대 공고를 추천해 주세요.',listings:'희망 예산에 맞는 공공임대 공고와 최근 전월세 실거래를 찾아주세요.',contract:'주택임대차계약서 초안을 작성하고 법령상 확인사항을 알려주세요.',inquiry:'주거지원 보완 요청에 답할 문의 문안을 작성하고 싶어요.',hugstats:'지역별 HUG 전세보증 사고 통계와 대위변제 자료를 확인하고 싶어요.',hug:'HUG 상습 채무불이행자 공개명단에서 임대인 정보를 확인하고 싶어요.',documents:'매매계약서, 전세계약서, 월세계약서나 주거급여 신청서를 작성해 PDF로 저장하고 싶어요.'};document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>chooseTopic(b.dataset.nav,navQuestions[b.dataset.nav]));
-const questionInput=$('question');questionInput.addEventListener('input',()=>{$('questionCount').textContent=`${questionInput.value.length} / 500`});questionInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();beginQuestion()}});function beginQuestion(){const q=questionInput.value.trim();if(!q){questionInput.focus();return}chooseTopic(classifyQuestion(q),q)}$('beginQuestion').onclick=beginQuestion;$('backToStart').onclick=()=>{$('workflow').classList.add('hidden');$('landing').classList.remove('hidden');$('output').classList.remove('show');window.scrollTo({top:0,behavior:'smooth'})};
-function safeUrl(value){const s=String(value||'');return /^https:\/\//i.test(s)?s:''}
-function recordRows(items){return(items||[]).map((row,index)=>{const cells=Object.entries(row||{}).slice(0,18).map(([k,v])=>`<div><b>${esc(k)}</b>　${esc(typeof v==='object'?JSON.stringify(v):String(v??''))}</div>`).join('');const title=row.PAN_NM||row['공고명']||row.name||row['성명']||row['임대인명']||`조회 항목 ${index+1}`;const link=safeUrl(row.DTL_URL||row.url||row['공고상세URL']);return`<details class="draft" style="margin-top:8px"><summary>${esc(title)}${row.CNP_CD_NM||row['지역명']?` · ${esc(row.CNP_CD_NM||row['지역명'])}`:''}${row.PAN_SS||row['공고상태']?` · ${esc(row.PAN_SS||row['공고상태'])}`:''}</summary>${cells}${link?`<p><a target="_blank" rel="noopener noreferrer" href="${esc(link)}">공식 상세 보기 ↗</a></p>`:''}</details>`}).join('')}
-function printDraftPdf(data){
+let stage = 'before', mode = 'support', topic = 'support', pending;
+const $ = id => document.getElementById(id);
+const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+})[ch]);
+const questionInput = $('question');
+const formatNumber = value => Number(value).toLocaleString('ko-KR');
+const options = {
+  support: ['맞춤 주거 상담', '서울 청년 월세 지원을 받으려면 언제 신청하고 어떤 서류가 필요한가요?', '계약 상태와 조건을 입력하면 월세 지원 공고와 대조할 수 있어요.', '공고·법령 확인하기'],
+  recommend: ['내 조건에 맞는 제도·복지 추천', '제 조건에 맞는 서울 주거지원 제도와 공공임대 공고를 추천해 주세요.', '가구 유형과 나이를 선택하면 관련 지원을 함께 찾습니다.', '지원사업 찾기'],
+  listings: ['공공임대 공고·전월세 실거래', '서울 공공임대 공고와 최근 전월세 실거래를 찾아주세요.', '최근 아파트 전월세 신고 통계와 LH 임대공고를 보여드립니다.', '공고와 거래 통계 확인하기'],
+  contract: ['계약서 초안·점검', '주택임대차계약서 초안을 작성하고 확인 사항을 알려주세요.', '거래 조건을 입력하면 검토용 계약서 초안을 만들 수 있어요.', '계약서 초안 만들기'],
+  documents: ['계약서·신청서 PDF', '서울 주택 계약서나 주거지원 신청서 초안을 PDF로 만들고 싶어요.', '문서를 선택하면 기관의 공식 양식과 작성용 초안을 확인할 수 있어요.', '문서 초안 만들기'],
+  inquiry: ['신청서·주거 민원 작성', '서울 주거 민원을 작성하고 싶어요.', '어떤 일이 있었는지와 기관에 바라는 조치를 입력해 주세요.', '민원 문안 만들기'],
+  hugstats: ['HUG 전세보증 사고 통계', '지역별 HUG 전세보증 사고와 대위변제 통계를 보고 싶어요.'],
+  hug: ['HUG 상습 채무불이행자 공개명단', 'HUG 상습 채무불이행자 공개명단에서 임대인 정보를 확인하고 싶어요.', 'HUG 공개명단에 나온 이름 또는 주소 일부로 조회할 수 있어요.', '공개명단 검색']
+};
+const documents = {
+  monthly: ['주택 월세계약서', '법무부 주택임대차 표준계약서', 'https://www.moj.go.kr/moj/163/subview.do', '월세'],
+  jeonse: ['주택 전세계약서', '법무부 주택임대차 표준계약서', 'https://www.moj.go.kr/moj/163/subview.do', '전세'],
+  sale: ['부동산 매매계약서', '경기부동산포털 매매계약서 서식', 'https://map.gg.go.kr/reb/selectRebFormView.do', '매매'],
+  youth_monthly: ['서울 청년월세지원 신청 준비서류', '서울주거포털 신청·제출서류', 'https://housing.seoul.go.kr/site/main/content/sh01_060513'],
+  housing_benefit: ['주거급여 신청서', '정부24 주거급여 신청 및 공식 서식', 'https://www.gov.kr/mw/AA020InfoCappView.do?CappBizCD=16130000040'],
+  lease_report: ['주택 임대차계약 신고서', '정부24 임대차신고 및 공식 서식', 'https://www.gov.kr/mw/AA020InfoCappView.do?CappBizCD=16130000132'],
+  inquiry: ['주거 민원 신청서', '서울시 응답소에서 접수', 'https://eungdapso.seoul.go.kr/']
+};
+function safeUrl(value) {
+  try { const url = new URL(value); return url.protocol === 'https:' ? url.href : ''; }
+  catch { return ''; }
+}
+function link(url, label) {
+  const trusted = safeUrl(url);
+  return trusted ? `<a href="${esc(trusted)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>` : esc(label);
+}
+function mapLink(place, label = '카카오맵에서 보기') {
+  return place ? link('https://map.kakao.com/link/search/' + encodeURIComponent(place), label) : '';
+}
+function visible(selector, show) {
+  document.querySelectorAll(selector).forEach(el => el.classList.toggle('hidden', !show));
+}
+function setMode(value) {
+  mode = value;
+  document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('selected', b.dataset.mode === mode));
+  $('submit').textContent = ({application: '신청 준비서류 만들기', inquiry: '민원 문안 만들기'})[mode] ||
+    (mode === 'contract' ? '계약서 초안 만들기' : options[topic]?.[3]) || '문서 초안 만들기';
+  if (topic === 'support') visible('.inquiry-only', mode === 'inquiry');
+}
+function setStage(value) {
+  stage = value;
+  document.querySelectorAll('[data-stage]').forEach(b => {
+    b.classList.toggle('selected', b.dataset.stage === stage);
+    b.setAttribute('aria-pressed', String(b.dataset.stage === stage));
+  });
+  if (topic === 'support') {
+    visible('.after-only', stage === 'after');
+    $('formStatus').textContent = stage === 'before' ? '계약 전에 공식 모집 일정과 기준을 살펴보세요.' :
+      '보증금·월세를 입력하면 공고의 금액 기준을 미리 대조할 수 있어요.';
+  }
+}
+function documentDetails() {
+  const type = $('documentType').value;
+  const doc = documents[type];
+  const isContract = Boolean(doc[3]);
+  visible('.application-only', !isContract);
+  visible('.sale-only', type === 'sale');
+  visible('.contract-detail-only', isContract);
+  visible('.lease-only', isContract && type !== 'sale');
+  visible('.monthly-only,.rent-only', type === 'monthly');
+  visible('#depositField', isContract && type !== 'sale');
+  $('formStatus').innerHTML = link(doc[2], doc[1]);
+  setMode(isContract ? 'contract' : 'application');
+}
+function home(clear = false) {
+  pending?.abort();
+  pending = undefined;
+  if (clear) {
+    questionInput.value = '';
+    $('questionCount').textContent = '0 / 500';
+  }
+  visible('#workflow,#output', false);
+  visible('#landing', true);
+  document.querySelectorAll('[data-nav]').forEach(b => b.classList.remove('active'));
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  questionInput.focus();
+}
+function chooseTopic(value, question) {
+  pending?.abort();
+  pending = undefined;
+  topic = value;
+  if (question) {
+    questionInput.value = question;
+    $('questionCount').textContent = question.length + ' / 500';
+  }
+  document.querySelectorAll('[data-nav]').forEach(b => b.classList.toggle('active', b.dataset.nav === topic));
+  visible('#output', false);
+  visible('#landing', false);
+  visible('#workflow', topic !== 'hugstats');
+  if (topic === 'hugstats') {
+    setMode(topic);
+    submit();
+    return;
+  }
+  const [title, , note] = options[topic];
+  $('workflowTitle').textContent = title;
+  $('workflowNote').textContent = note;
+  $('questionSummary').textContent = questionInput.value.trim();
+  $('formHeading').textContent = topic === 'hug' ? '검색어' : '필요한 정보';
+  const profile = ['recommend', 'listings'].includes(topic);
+  const documentFlow = ['contract', 'documents'].includes(topic);
+  visible('.support-only,#stageFields', topic === 'support');
+  visible('.age-field', topic === 'support' || topic === 'recommend');
+  visible('.profile-only', profile);
+  visible('#profileField', topic === 'recommend');
+  visible('.inquiry-only', topic === 'inquiry');
+  visible('.hug-only,#hugNotice', topic === 'hug');
+  visible('.contract-only,#docLibrary', documentFlow);
+  visible('.after-only,.application-only', false);
+  visible('#privacyNote', topic !== 'hug');
+  $('formStatus').innerHTML = topic === 'inquiry' ? link(documents.inquiry[2], documents.inquiry[1]) :
+    topic === 'hug' ? link('https://onestop.khug.or.kr/view/hmr/common/guar/badLessorStep002', 'HUG 공식 조회') : '';
+  visible('#formStatus', topic !== 'recommend' && topic !== 'listings');
+  if (documentFlow) {
+    $('documentType').value = topic === 'contract' && /전세/.test(questionInput.value) ? 'jeonse' :
+      topic === 'contract' ? 'monthly' : $('documentType').value;
+    documentDetails();
+  } else {
+    setMode(topic);
+    if (topic === 'support') setStage(stage);
+  }
+  $('workflow').scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+function classifyQuestion(question) {
+  if (/상습\s*채무|채무불이행자|임대인\s*명단|HUG\s*명단/i.test(question)) return 'hug';
+  if (/사고\s*통계|사고\s*건수|사고율|대위변제|피해주택/.test(question)) return 'hugstats';
+  if (/민원|보완\s*요청|문의\s*문안/.test(question)) return 'inquiry';
+  if (/추천|내\s*조건|복지/.test(question)) return 'recommend';
+  if (/실거래|공공임대|전월세\s*시세|매물/.test(question)) return 'listings';
+  if (/pdf|계약서\s*초안/i.test(question)) return 'contract';
+  return 'support';
+}
+function beginQuestion() {
+  const question = questionInput.value.trim();
+  if (!question) return questionInput.focus();
+  topic = classifyQuestion(question);
+  if (topic === 'hug') return chooseTopic(topic);
+  mode = topic;
+  submit(true);
+}
+document.querySelectorAll('[data-stage]').forEach(b => b.onclick = () => setStage(b.dataset.stage));
+document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+document.querySelectorAll('[data-topic]').forEach(b => b.onclick = () => chooseTopic(b.dataset.topic, b.dataset.question));
+document.querySelectorAll('[data-nav]').forEach(b => b.onclick = () => chooseTopic(b.dataset.nav, options[b.dataset.nav][1]));
+questionInput.addEventListener('input', () => $('questionCount').textContent = questionInput.value.length + ' / 500');
+questionInput.addEventListener('keydown', event => {
+  if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    beginQuestion();
+  }
+});
+$('beginQuestion').onclick = beginQuestion;
+$('homeLink').onclick = (event) => { event.preventDefault(); home(true); };
+$('backToStart').onclick = () => home();
+$('documentType').onchange = documentDetails;
+document.querySelectorAll('[data-money]').forEach(input => input.addEventListener('input', () => {
+  const caret = input.selectionStart;
+  const remaining = input.value.slice(caret).replace(/\D/g, '').length;
+  const digits = input.value.replace(/\D/g, '').slice(0, 12);
+  input.value = digits ? formatNumber(digits) : '';
+  let position = input.value.length;
+  for (let left = remaining; left > 0 && position > 0; position--) {
+    if (/\d/.test(input.value[position - 1])) left--;
+  }
+  input.setSelectionRange(position, position);
+}));
+
+function printDraftPdf(data, request){
  const win=window.open('','_blank');
  if(!win){alert('PDF 저장 창이 차단됐습니다. 팝업을 허용한 뒤 다시 눌러 주세요.');return}
- const type=$('documentType')?.value||'';
- const isContract=['sale','jeonse','monthly'].includes(type);
- const title=$('documentType')?.selectedOptions?.[0]?.text||'주거 관련 문서 초안';
- const value=id=>$(id)?.value?.trim()||'';
+ const {type, doc, payload} = request;
+ const isContract = Boolean(doc[3]);
+ const title = doc[0] + ' 초안';
+ const value = id => String(payload[id.replace(/[A-Z]/g, ch => '_' + ch.toLowerCase())] ?? '').trim();
  const text=id=>value(id)?esc(value(id)):'[기재 필요]';
  const money=id=>value(id)?esc(Number(value(id).replace(/[^0-9]/g,'')||0).toLocaleString('ko-KR'))+'원':'[기재 필요]';
- const refs=(data.sources||[]).filter(x=>x.url).slice(0,12).map(x=>`<li><a href="${esc(x.url)}">${esc(x.title||x.type)} ↗</a></li>`).join('');
+ const refs=(data.sources||[]).filter(x=>safeUrl(x.url)).slice(0,8).map(x=>`<li>${link(x.url, x.title || x.type)}</li>`).join('');
  let body;
  if(isContract){
   const sale=type==='sale',monthly=type==='monthly';
@@ -142,26 +344,290 @@ function printDraftPdf(data){
    : `<tr><th>보증금</th><td>${money('deposit')}</td><th>월 차임</th><td>${monthly?money('rent'):'해당 없음'}</td></tr><tr><th>임대차 기간</th><td>${text('contractStart')} ~ ${text('contractEnd')}</td><th>차임 지급일</th><td>${monthly?text('paymentDay'):'해당 없음'}</td></tr>`;
   const special=value('specialTerms')?esc(value('specialTerms')).replace(/\n/g,'<br>'):'[기재 필요]';
   body=`<h1 class="contract-title">${contractTitle}</h1><p class="lead">당사자는 아래 표시 부동산에 관하여 다음과 같이 계약을 체결하고 계약서 2통을 작성하여 각 1통씩 보관한다.</p>
-  <h2>1. 부동산의 표시</h2><table><tr><th>소재지</th><td colspan="3" class="write"></td></tr><tr><th>건물 유형</th><td>${text('buildingType')}</td><th>동·호수</th><td class="write"></td></tr><tr><th>토지 지목·면적</th><td class="write"></td><th>건물 구조·용도·면적</th><td class="write"></td></tr><tr><th>계약 범위</th><td colspan="3">부동산 전부 (일부인 경우 별지에 특정)</td></tr></table>
-  <h2>2. 계약 조건</h2><table>${priceRows}<tr><th>${sale?'인도일':'목적물 인도일'}</th><td>${text('moveInDate')}</td><th>관리비</th><td>${money('maintenanceFee')}</td></tr><tr><th>지급 방법·계좌</th><td colspan="3" class="write"></td></tr></table>
+  <h2>1. 부동산의 표시</h2><table><tr><th>소재지</th><td colspan="3" class="write"></td></tr><tr><th>건물 유형</th><td>${text('buildingType')}</td><th>동·호수</th><td class="write"></td></tr><tr><th>토지 지목·면적</th><td class="write"></td><th>건물 구조·용도·면적</th><td class="write"></td></tr><tr><th>계약 범위</th><td colspan="3"></td></tr></table>
+  <h2>2. 계약 조건</h2><table>${priceRows}<tr><th>${sale?'인도일':'목적물 인도일'}</th><td>${text('moveInDate')}</td><th>관리비</th><td>${text('maintenanceFee')}</td></tr><tr><th>지급 방법·계좌</th><td colspan="3" class="write"></td></tr></table>
   <h2>3. 계약 당사자</h2><table class="parties"><tr><th></th><th>${sale?'매도인':'임대인'}</th><th>${sale?'매수인':'임차인'}</th></tr><tr><th>성명</th><td class="write"></td><td class="write"></td></tr><tr><th>주민등록번호</th><td class="write"></td><td class="write"></td></tr><tr><th>주소</th><td class="write tall"></td><td class="write tall"></td></tr><tr><th>연락처</th><td class="write"></td><td class="write"></td></tr><tr><th>서명 또는 날인</th><td class="sign"></td><td class="sign"></td></tr></table>
   <h2>4. 특약사항</h2><div class="special">${special}<br><br><br></div><h2>5. 계약 확인</h2><p>당사자는 신분·대리권, 등기사항, 목적물 상태, 공과금과 관리비 및 권리관계를 확인하고 계약 내용을 이해한 후 서명 또는 날인한다.</p><p class="date-line">계약 체결일: ______년 ____월 ____일</p><p class="caution">이 문서는 입력한 조건을 정리한 작성용 초안이며 법무부·정부의 공식 표준서식 원본이 아닙니다. 공식 법정 서식이나 중개대상물 확인설명서를 대체하지 않습니다. 체결 전 실제 합의와 최신 공식 서식을 확인하세요.</p><section class="ai-terms"><h2>상담 참고 문안</h2><div>${esc(data.draft||'')}</div></section>`;
  }else{
-  body=`<h1 class="contract-title">${esc(title)}</h1><div class="content">${esc(data.draft||'')}</div>`;
+  body = `<h1 class="contract-title">${esc(title)}</h1>
+    <table class="form-table">
+      <tr><th>제출처</th><td>${link(doc[2], doc[1])}</td></tr>
+      <tr><th>신청인 성명</th><td class="write"></td></tr>
+      <tr><th>연락처</th><td class="write"></td></tr>
+      <tr><th>제목</th><td>${esc(payload.question)}</td></tr>
+      <tr><th>${type === 'inquiry' ? '민원 내용 및 요청 사항' : '신청 내용 및 확인 사항'}</th><td class="content">${esc(data.draft)}</td></tr>
+      <tr><th>첨부 자료</th><td class="write">${(data.documents || []).map(esc).join('<br>')}</td></tr>
+      <tr><th>작성일·서명</th><td class="sign">________년 ____월 ____일　　서명 ____________________</td></tr>
+    </table>`;
  }
  const page=`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${esc(title)}</title><style>
- @page{size:A4;margin:15mm 17mm}*{box-sizing:border-box}body{font:10.5pt/1.58 "Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#202936;margin:0}.actions{margin:0 0 16px}button{border:0;border-radius:5px;background:#223a5e;color:white;padding:9px 14px;font-size:10pt;cursor:pointer}.contract-title{text-align:center;font-size:20pt;letter-spacing:4px;margin:6px 0 18px}.lead{text-align:center;margin:0 0 18px}h2{font-size:11.55pt;border-bottom:1px solid #596b83;padding:0 0 5px;margin:15px 0 8px;break-after:avoid}table{width:100%;border-collapse:collapse;table-layout:fixed;margin:6px 0 12px;font-size:9.45pt}th,td{border:1px solid #606b78;padding:7px 8px;vertical-align:middle}th{background:#f0f2f5;text-align:center;font-weight:700;width:18%}td{height:35px}.write{height:39px}.tall{height:54px}.parties th:first-child{width:18%}.parties th:not(:first-child){width:41%}.sign{height:62px}.special{border:1px solid #606b78;min-height:78px;padding:9px;line-height:2}.date-line{text-align:right;margin:18px 0}.caution{font-size:8.4pt;color:#5e6672;border:1px solid #ccd3dc;padding:8px;margin-top:16px}.ai-terms{font-size:8.925pt;color:#59636e;margin-top:15px}.content{white-space:pre-wrap;word-break:keep-all}.refs{border-top:1px solid #ddd;margin-top:20px;padding-top:8px;font-size:8.4pt;word-break:break-all}.refs h2{font-size:9.45pt}.refs ul{padding-left:18px}.refs a{color:#223a5e}.footer{margin-top:15px;font-size:8.4pt;color:#77808b}.actions span{font-size:9pt;color:#606a76}@media print{.actions{display:none}.ai-terms{break-inside:avoid}tr{break-inside:avoid}}
- </style></head><body><div class="actions"><button onclick="window.print()">PDF 저장 / 인쇄</button> <span>인쇄 창에서 ‘PDF로 저장’을 선택하세요.</span></div>${isContract?'<div style="text-align:center;color:#718096;font-size:8.4pt;margin-bottom:8px">AI 서울 주거도우미 · 계약서 작성용 초안</div>':'<aside class="caution">작성 보조 초안입니다. 공식 기관 양식 및 신청 자격을 보장하지 않습니다.</aside>'}<main>${body}</main>${refs?`<section class="refs"><h2>공식 출처</h2><ul>${refs}</ul></section>`:''}<div class="footer">작성일: ${new Date().toLocaleDateString('ko-KR')} · PDF는 사용자 기기에서 생성됩니다.</div></body></html>`;
- win.document.open();win.document.write(page);win.document.close();setTimeout(()=>win.print(),350);
+ @page{size:A4;margin:15mm 17mm}*{box-sizing:border-box}body{font:12pt/1.58 "Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#202936;margin:0}.actions{margin:0 0 16px}button{border:0;border-radius:5px;background:#223a5e;color:white;padding:9px 14px;font-size:10pt;cursor:pointer}.contract-title{text-align:center;font-size:20pt;letter-spacing:4px;margin:6px 0 18px}.lead{text-align:center;margin:0 0 18px}h2{font-size:11.55pt;border-bottom:1px solid #596b83;padding:0 0 5px;margin:15px 0 8px;break-after:avoid}table{width:100%;border-collapse:collapse;table-layout:fixed;margin:6px 0 12px;font-size:10.5pt}th,td{border:1px solid #606b78;padding:7px 8px;vertical-align:middle}th{background:#f0f2f5;text-align:center;font-weight:700;width:18%}td{height:35px}.write{height:39px}.tall{height:54px}.form-table th{width:27%;word-break:keep-all}.parties th:first-child{width:18%}.parties th:not(:first-child){width:41%}.sign{height:62px}.special{border:1px solid #606b78;min-height:78px;padding:9px;line-height:2}.date-line{text-align:right;margin:18px 0}.caution{font-size:8.4pt;color:#5e6672;border:1px solid #ccd3dc;padding:8px;margin-top:16px}.ai-terms{font-size:8.925pt;color:#59636e;margin-top:15px}.content{white-space:pre-wrap;word-break:keep-all}.refs{border-top:1px solid #ddd;margin-top:20px;padding-top:8px;font-size:8.4pt;word-break:break-all}.refs h2{font-size:9.45pt}.refs ul{padding-left:18px}.refs a{color:#223a5e}.footer{margin-top:15px;font-size:8.4pt;color:#77808b}.actions span{font-size:9pt;color:#606a76}@media print{.actions{display:none}.ai-terms{break-inside:avoid}tr{break-inside:avoid}}
+ </style></head><body><div class="actions"><button onclick="window.print()">PDF 저장 / 인쇄</button> <span>인쇄 창에서 PDF로 저장을 선택하고, 머리글 및 바닥글을 끄면 주소와 시간이 빠집니다.</span></div>${isContract?'<div style="text-align:center;color:#718096;font-size:8.4pt;margin-bottom:8px">AI 서울 주거도우미 · 계약서 작성용 초안</div>':'<aside class="caution">작성 보조용 초안입니다. 접수할 때는 해당 기관의 공식 양식을 이용하세요.</aside>'}<main>${body}</main>${refs?`<section class="refs"><h2>공식 출처</h2><ul>${refs}</ul></section>`:''}<div class="footer">작성일: ${new Date().toLocaleDateString('ko-KR')} · PDF는 사용자 기기에서 생성됩니다.</div></body></html>`;
+ win.document.open();win.document.write(page);win.document.close();
 }
 
- function rentChart(s){const max=Math.max(1,...(s.districts||[]).map(x=>x.count||0));const districts=(s.districts||[]).slice().sort((a,b)=>b.count-a.count).slice(0,10);const rows=districts.map(x=>'<div class="stat-row"><span>'+esc(x.district)+'</span><div class="stat-track"><i style="width:'+Math.max(3,Math.round(x.count/max*100))+'%"></i></div><b>'+Number(x.count).toLocaleString()+'건</b><small>보증금 '+(x.average_deposit_manwon??'—')+' · 월세 '+(x.average_monthly_rent_manwon??'—')+' 만원</small></div>').join('');const monthMax=Math.max(1,...(s.months||[]).map(x=>x.count||0));const months=(s.months||[]).map(x=>'<div class="stat-row"><span>'+esc(x.month)+'</span><div class="stat-track"><i style="width:'+Math.max(3,Math.round(x.count/monthMax*100))+'%"></i></div><b>'+Number(x.count).toLocaleString()+'건</b></div>').join('');return '<section class="rent-panel"><div class="rent-title"><div><b>서울 아파트 전월세 실거래 요약</b><small>국토교통부 신고 자료 · 보증금·월세 단위: 만원 (월세 평균은 월세 계약만 집계)</small></div><span>'+(rows?'자치구별 비교':'계약월별 흐름')+'</span></div><div class="stat-kpis"><article><small>조회 거래</small><strong>'+Number(s.count||0).toLocaleString()+'건</strong></article><article><small>평균 보증금</small><strong>'+(s.average_deposit_manwon==null?'자료 없음':Number(s.average_deposit_manwon).toLocaleString()+'만원')+'</strong></article><article><small>평균 월세</small><strong>'+(s.average_monthly_rent_manwon==null?'자료 없음':Number(s.average_monthly_rent_manwon).toLocaleString()+'만원')+'</strong></article></div>'+(rows?'<h4>자치구 거래 건수 상위 10곳 · 평균 보증금/월세 계약 월세</h4>'+rows:'<h4>월별 거래 건수</h4>'+(months||'<p>조회 거래가 없습니다.</p>'))+'<p class="privacy">최근 계약월 기준 통계이며 현재 매물이나 시세 보증이 아닙니다. <a href="https://www.data.go.kr/data/15126474/openapi.do" target="_blank" rel="noopener noreferrer">공식 원문 API ↗</a></p></section>'}
-function render(data){const out=$('output');const sourceRows=items=>(items||[]).map(s=>{const url=safeUrl(s.url);return `<li>${url?`<a target="_blank" rel="noopener noreferrer" href="${esc(url)}">${esc(s.type)} · ${esc(s.title)} ↗</a>`:`${esc(s.type)} · ${esc(s.title)}`}${s.effective?`<span class="label"> · 시행 ${esc(s.effective)}</span>`:''}${s.excerpt?`<div class="ref">${esc(s.excerpt)}</div>`:''}</li>`}).join('');const ordinanceItems=sourceRows(data.ordinance_sources),announcementItems=sourceRows(data.announcement_sources),nationalLawItems=sourceRows(data.national_law_sources);if(data.error){out.innerHTML=`<div class="card error">${esc(data.error)}</div>`;out.classList.add('show');return}if(data.statistics){const cards=(data.statistics||[]).map(s=>'<article class="draft"><b>'+esc(s.title)+'</b><div>'+esc(s.coverage)+'</div><div class="label">자료 기준: '+esc(s.as_of)+' · '+esc(s.format)+'</div><p><a target="_blank" rel="noopener noreferrer" href="'+esc(safeUrl(s.url))+'">공식 원문 데이터 보기 ↗</a></p></article>').join('');out.innerHTML='<div class="card outcard"><div class="outhead"><h3>HUG 공식 통계 자료</h3><span class="badge">원문 기준일 표시</span></div><div>'+cards+'</div><p class="warn" style="margin-top:14px">'+esc(data.caution)+'</p></div>';out.classList.add('show');out.scrollIntoView({behavior:'smooth',block:'start'});return}if(data.records){const rows=recordRows(data.records);const sources=(data.sources||[]).map(s=>`<li><a target="_blank" rel="noopener noreferrer" href="${esc(safeUrl(s.url))}">${esc(s.type)} · ${esc(s.title)} ↗</a></li>`).join('');out.innerHTML=`<div class="card outcard"><div class="outhead"><h3>HUG 공개명단 조회 결과</h3><span class="badge">${esc(data.count)}건 · ${esc(data.as_of||'')}</span></div><p class="answer">${data.count?`검색어와 일치한 공개 항목 ${esc(data.count)}건입니다.`:'검색어와 일치하는 공개 항목이 없습니다.'}</p><div>${rows||'<p class="statusbox">표시할 항목이 없습니다. 이름·주소 표기와 최신 공개 여부를 다시 확인해 주세요.</p>'}</div><p class="warn">${esc(data.caution||'공개명단 검색은 임대인의 안전 또는 보증 가입을 보증하지 않습니다.')}</p><ul>${sources}</ul></div>`;out.classList.add('show');out.scrollIntoView({behavior:'smooth',block:'start'});return}const sources=(data.sources||[]).map(s=>{const url=safeUrl(s.url);return`<li>${url?`<a target="_blank" rel="noopener noreferrer" href="${esc(url)}">${esc(s.type)} · ${esc(s.title)} ↗</a>`:`${esc(s.type)} · ${esc(s.title)}`}${s.effective?`<span class="label"> · 시행 ${esc(s.effective)}</span>`:''}${s.excerpt?`<div class="ref">${esc(s.excerpt)}</div>`:''}</li>`}).join('');const steps=(data.next_steps||[]).map(x=>`<li>${esc(x)}</li>`).join('');const docs=(data.documents||[]).map(x=>`<li>${esc(x)}</li>`).join('');const checks=(data.checks||[]).map(x=>`<div>• ${esc(x)}</div>`).join('');const publicData=data.public_data||{};const rentSummary=publicData.rent_summary;const lhRows=recordRows(publicData.lh_notices||[]),rentRows=recordRows(publicData.rent_records||[]);const external=lhRows||rentRows||rentSummary?`<div class="list"><h4>공공 API 원문 데이터</h4><p class="privacy">실거래 기록은 현재 계약 가능한 매물 목록이 아닙니다.</p>${lhRows?`<h4>LH 임대공고 (${(publicData.lh_notices||[]).length}건)</h4>${lhRows}`:'<p class="statusbox">표시할 LH 공고가 없습니다.</p>'}${rentSummary?rentChart(rentSummary):''}${rentRows?`<h4 style="margin-top:12px">조회 거래 일부 (${(publicData.rent_records||[]).length}건)</h4>${rentRows}`:'<p class="statusbox">표시할 실거래 자료가 없습니다.</p>'}</div>`:'';out.innerHTML=`<div class="card outcard"><div class="outhead"><h3>상황별 안내</h3><span class="badge">${esc(data.mode||mode)} · ${data.stage==='before'?'계약 전':'계약 후'}</span></div><div class="answer">${esc(data.answer||'안내를 생성하지 못했습니다.')}</div><div class="list"><h4>다음 단계</h4><ul>${steps||'<li>공식 공고를 확인해 주세요.</li>'}</ul></div><div class="list"><h4>준비 자료</h4><ul>${docs||'<li>최신 공고문에서 확인하세요.</li>'}</ul></div>${checks?`<div class="checks"><b>입력값 예비 대조</b><br>${checks}</div>`:''}${external}${data.draft?`<div class="list"><h4>${mode==='inquiry'?'담당 기관 문의 문안 초안':topic==='documents'?esc($('documentType').selectedOptions[0].text):mode==='contract'?'주택임대차계약서 초안':'신청서 초안'}</h4><div class="draft" id="draftText">${esc(data.draft)}</div><div class="doc-actions"><button class="tbtn" id="copyDraft" type="button">초안 복사</button><button class="tbtn primary" id="savePdf" type="button">PDF로 저장 / 인쇄</button></div>`:''}<div class="list"><h4>이어서 할 수 있어요</h4><button class="tbtn" type="button" data-continue="inquiry">이 상황으로 담당기관 문의 초안 만들기</button>${data.stage==='after'?'<button class="tbtn" type="button" data-continue="application" style="margin-left:6px">신청서 초안 준비하기</button>':''}</div><div class="warn" style="margin-top:12px">${esc(data.caution||'최종 자격과 제출서류는 해당 연도 공식 공고에서 확인하세요.')}</div>${data.law_api_warning?`<p class="warn">법령 API 상태: ${esc(data.law_api_warning)} · 서울시 공고 링크는 계속 확인할 수 있습니다.</p>`:''}<div class="list"><h4>서울시 조례에서 확인되는 내용</h4>${ordinanceItems?`<ul>${ordinanceItems}</ul>`:'<p class="statusbox">질문과 직접 연결되는 조례 원문을 확인하지 못했습니다. 조례 근거로 단정하지 않습니다.</p>'}</div><div class="list"><h4>모집공고·사업 안내에서 확인할 내용</h4>${announcementItems?`<ul>${announcementItems}</ul>`:'<p class="statusbox">이 기능에서 확인한 사업 공고가 없습니다.</p>'}</div>${nationalLawItems?`<div class="list"><h4>관련 국가 법령</h4><ul>${nationalLawItems}</ul></div>`:''}<div class="list"><h4>추가 공식 자료 출처</h4><ul>${sources}</ul></div></div>`;out.classList.add('show');out.scrollIntoView({behavior:'smooth',block:'start'});const copy=$('copyDraft');if(copy)copy.onclick=async()=>{try{await navigator.clipboard.writeText(data.draft);copy.textContent='복사했습니다'}catch{copy.textContent='복사 권한을 확인해 주세요'}};const savePdf=$('savePdf');if(savePdf)savePdf.onclick=()=>printDraftPdf(data)}
-$('output').addEventListener('click',e=>{const action=e.target.closest('[data-continue]')?.dataset.continue;if(!action)return;const previous=questionInput.value.trim();chooseTopic(action,`이전 상담 내용: ${previous}\n위에서 확인한 조례와 공고를 바탕으로 이어서 준비해 주세요.`)});
-async function submit(){const button=$('submit'),q=$('question').value.trim(),status=$('apiStatus').dataset;if(!q){$('question').focus();return}if(topic!=='hug'&&topic!=='hugstats'&&status.baseReady!=='true'){const reason=status.statusError||`현재 배포에서 확인되지 않은 값: ${status.baseMissing||'UPSTAGE_API_KEY 또는 LAW_OC'}. Vercel Environment Variables에서 이 Preview 배포 환경에도 지정되어 있는지 확인하고, 저장 후 새 Preview 배포를 생성해 주세요.`;render({error:reason});return}if((topic==='recommend'||topic==='listings')&&status.publicReady!=='true'&&status.molitReady!=='true'){render({error:'국토부 실거래 API 키가 설정되지 않았습니다. MOLIT_API_KEY 또는 PUBLIC_DATA_API_KEY를 현재 배포 환경에 추가해 주세요.'});return}if(topic==='hug'&&status.hugReady!=='true'){render({error:'HUG 명단 API 키가 서버에 설정되지 않았습니다. HUG_API_KEY를 현재 배포 환경에 추가해 주세요.'});return}if(topic==='hug'&&!$('landlordQuery').value.trim()){$('landlordQuery').focus();$('formStatus').textContent='공개명단을 조회하려면 임대인 이름 또는 주소 일부를 입력해 주세요.';return}button.disabled=true;button.textContent=topic==='hug'?'HUG 공개명단 조회 중…':topic==='hugstats'?'HUG 통계 출처 확인 중…':'공고·법령·공공자료를 확인하고 있어요…';const docType=$('documentType').value;const contractType={sale:'매매',jeonse:'전세',monthly:'월세'}[docType]||'';const applicationType={youth_monthly:'서울 청년월세지원 신청 준비서류',housing_benefit:'주거급여 신청서 초안',lease_report:'주택 임대차계약 신고서 초안'}[docType]||'';const payload={stage,mode,question:q,seoul_resident:$('seoul').checked,age:$('age').value,deposit:$('deposit').value,rent:$('rent').value,income:$('income').value,household:$('household').value,other:$('other').value,district:$('district').value,budget_rent:$('budgetRent').value,budget_deposit:$('budgetDeposit').value,landlord_query:$('landlordQuery').value,building_type:$('buildingType').value,contract_start:$('contractStart').value,contract_end:$('contractEnd').value,payment_day:$('paymentDay').value,move_in_date:$('moveInDate').value,maintenance_fee:$('maintenanceFee').value,special_terms:$('specialTerms').value,contract_type:contractType,application_type:applicationType,application_age:$('applicationAge').value,application_district:$('applicationDistrict').value,application_detail:$('applicationDetail').value,sale_price:$('salePrice').value,down_payment:$('downPayment').value,interim_payment:$('interimPayment').value,balance_payment:$('balancePayment').value,balance_date:$('balanceDate').value};try{const r=await fetch('/ui/housing/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();if(!r.ok)throw new Error(d.error||'서버 오류');render(d)}catch(e){render({error:`연결 오류: ${e.message} · 서버 API 환경변수와 연결 상태를 확인해 주세요.`})}finally{button.disabled=false;setMode(mode)}}
-$('submit').onclick=submit;$('documentType').addEventListener('change',selectDocumentType);
-async function refreshApiStatus(){const status=$('apiStatus').dataset;if(location.protocol==='file:'){status.baseReady='false';status.statusError='이 HTML을 직접 열지 말고 배포된 서버 주소로 접속해 주세요.';$('apiStatus').textContent='서버 주소로 접속해야 합니다';return}try{const r=await fetch('/ui/housing/status',{cache:'no-store'});if(!r.ok)throw new Error(`상태 API HTTP ${r.status}`);const d=await r.json(),missing=[];if(!d.upstage_configured)missing.push('UPSTAGE_API_KEY');if(!d.law_configured)missing.push('LAW_OC (실제 발급 OC)');const base=missing.length===0;status.baseReady=base?'true':'false';status.baseMissing=missing.join(', ');status.statusError='';status.publicReady=d.public_data_configured?'true':'false';status.molitReady=d.molit_configured?'true':'false';status.hugReady=d.hug_configured?'true':'false';$('apiStatus').textContent=base?'상담 API 서버 설정 완료':`환경변수 확인 필요: ${missing.join(' · ')}`}catch(e){status.baseReady='false';status.statusError=e.message.includes('HTTP')?`${e.message} · 이 배포에 FastAPI 상태 경로가 없습니다.`:'서버 상태 확인 실패 · 배포 URL 또는 백엔드 오류를 확인해 주세요.';$('apiStatus').textContent='백엔드 API 상태를 확인할 수 없습니다'}}
-refreshApiStatus();
+function sourceList(items, excerpts = false) {
+  return (items || []).map(source => `<li>${link(source.url, source.title)}
+    ${source.effective ? `<small> · 시행 ${esc(source.effective)}</small>` : ''}
+    ${excerpts && source.excerpt ? `<details class="excerpt"><summary>조문 발췌</summary><div>${esc(source.excerpt)}</div></details>` : ''}</li>`).join('');
+}
+function actionList(title, items, sources) {
+  if (!items?.length) return '';
+  const tags = [
+    [/공고|모집|신청기간|월세지원|이체확인|가족관계|증빙/, /공고|서울시.*지원/],
+    [/조례/, /조례/], [/법령|임대차보호법/, /국가 법령/],
+    [/문의|민원|보완/, /응답소|국민신문고/]
+  ];
+  const rows = items.map(item => {
+    const match = tags.find(([phrase]) => phrase.test(item));
+    const citation = match && sources.find(s => match[1].test(s.title + ' ' + (s.type || '')) && safeUrl(s.url));
+    const split = item.match(/^(.{3,35}?)[：:](\s*.*)$/);
+    const text = split ? '<strong>' + esc(split[1]) + '</strong> ' + esc(split[2]) :
+      esc(item).replace(/공식 공고|신청 기간|임대차계약서|이체확인증|주민센터|가입 요건/g, '<strong>$&</strong>');
+    return `<li>${text}${citation ? ' · ' + link(citation.url, citation.title) : ''}</li>`;
+  }).join('');
+  return `<section class="result-section"><h4>${esc(title)}</h4><ul>${rows}</ul></section>`;
+}
+function profileResult(data) {
+  const profile = data.profile_summary;
+  if (!profile) return '';
+  const budgets = [
+    profile.budget_deposit == null ? '' : '보증금 상한 ' + formatNumber(profile.budget_deposit) + '원',
+    profile.budget_rent == null ? '' : '월세 상한 ' + formatNumber(profile.budget_rent) + '원',
+  ].filter(Boolean);
+  return `<p class="input-summary"><strong>${esc(profile.district || '서울 지역')}</strong>${budgets.length ? ' · ' + esc(budgets.join(' · ')) : ''}</p>`;
+}
+function renderPrograms(items) {
+  if (!items?.length) return '';
+  return `<section class="result-section"><h4>조건별로 확인할 주거지원</h4><div class="result-grid">${items.map(row => `
+    <article><strong>${esc(row.title)}</strong><p>${esc(row.description)}</p>${link(row.url, '요건·신청 경로 확인')}</article>`).join('')}</div></section>`;
+}
+function barRows(rows, label, unit, max = Math.max(1, ...rows.map(row => Number(row.value) || 0))) {
+  return rows.map(row => {
+    const val = Number(row.value);
+    const known = row.value != null && Number.isFinite(val);
+    const width = known ? Math.max(0, Math.min(100, val / max * 100)) : 0;
+    const value = known ? formatNumber(val) + unit : '자료 없음';
+    return `<div class="chart-row"><span>${esc(row.label)}</span><div class="stat-track" aria-hidden="true"><i style="width:${width}%"></i></div><b aria-label="${esc(label + ' ' + value)}">${esc(value)}</b></div>`;
+  }).join('');
+}
+function rentChart(summary) {
+  const acrossSeoul = summary.districts.length > 1;
+  const counts = acrossSeoul ? [...summary.districts].sort((a, b) => b.count - a.count) : summary.months;
+  const rows = counts.map(item => ({label: item.district || item.month, value: item.count}));
+  if (!summary.count) return '<p>해당 기간에 조회된 신고 거래가 없습니다.</p>';
+  const average = value => value == null ? '자료 없음' : formatNumber(value) + '만원';
+  return `<section class="result-section rent-panel">
+    <h4>아파트 전월세 신고 통계</h4>
+    <div class="stat-kpis">
+      <article><small>조회 거래</small><strong>${formatNumber(summary.count)}건</strong></article>
+      <article><small>평균 보증금</small><strong>${average(summary.average_deposit_manwon)}</strong></article>
+      <article><small>월세 계약 평균 월세</small><strong>${average(summary.average_monthly_rent_manwon)}</strong></article>
+    </div>
+    <h4>${acrossSeoul ? '자치구별 거래 건수' : '계약월별 거래 건수'}</h4>
+    ${barRows(rows.slice(0, 10), '거래', '건')}
+    ${rows.length > 10 ? `<details><summary>나머지 자치구 보기</summary>${barRows(rows.slice(10), '거래', '건', Math.max(1, ...rows.map(r => r.value)))}</details>` : ''}
+    <p>조회 계약월 ${esc(summary.months.map(row => row.month).join(', '))} · 현재까지 신고된 계약 기준. ${esc(summary.coverage_note || '')} ${link(summary.source_url, '국토교통부 원문')}</p>
+  </section>`;
+}
+function publicResult(publicData, profile) {
+  if (!publicData?.lh_status) return '';
+  const notices = publicData.lh_notices || [];
+  const district = profile?.district;
+  const areaMap = district && !district.includes('전체') ? mapLink('서울 ' + district, '희망 자치구 지도') : '';
+  const rows = notices.map(row => `<article><strong>${esc(row.title)}</strong>
+    <p>${[row.type, row.status, row.region, row.deadline && `마감 ${row.deadline}`].filter(Boolean).map(esc).join(' · ')}</p>
+    ${(row.addresses || []).map(address => `<p>${esc(address)} · ${mapLink(address)}</p>`).join('')}
+    ${link(row.url || 'https://apply.lh.or.kr/', row.url ? 'LH 공고 상세' : 'LH 청약플러스')}${row.addresses?.length ? '' : ' · 주소는 공고문에서 확인'} </article>`).join('');
+  return `<section class="result-section"><h4>LH 공공임대 공고</h4>${areaMap ? `<p>${areaMap}</p>` : ''}
+    ${rows ? `<p>공고별 임대료와 신청 요건을 확인해 주세요.</p><div class="result-grid">${rows}</div>` :
+      `<p>${publicData.lh_status === 'ok' ? '조회 기간에 표시할 공고가 없습니다.' : 'LH 공고 조회에 연결하지 못했습니다.'} ${link('https://apply.lh.or.kr/', 'LH 청약플러스')}</p>`}
+    ${publicData.rent_summary ? rentChart(publicData.rent_summary) :
+      `<p>전월세 신고 통계를 표시할 수 없습니다. ${link('https://www.data.go.kr/data/15126474/openapi.do', '국토교통부 자료 안내')}</p>`}
+  </section>`;
+}
+function renderHugCharts(data) {
+  const charts = (data.charts || []).map((chart, index) => {
+    const id = 'hugChart-' + index;
+    const selections = chart.columns.map(col => `<option value="${esc(col.key)}">${esc(col.label)}</option>`).join('');
+    const chartBody = column => {
+      const rows = chart.rows.map(row => ({label: row.label, value: row[column.key]}));
+      const top = rows.length > 12 ? [...rows].sort((a, b) => (b.value ?? -1) - (a.value ?? -1)) : rows;
+      const total = chart.total?.[column.key];
+      const max = Math.max(1, ...top.map(row => Number(row.value) || 0));
+      return `${total == null ? '' : `<p><strong>${esc(chart.total.label || '합계')} ${esc(formatNumber(total) + column.unit)}</strong></p>`}
+        ${barRows(top.slice(0, 12), column.label, column.unit, max)}
+        ${top.length > 12 ? `<details><summary>나머지 자치구 보기</summary>${barRows(top.slice(12), column.label, column.unit, max)}</details>` : ''}`;
+    };
+    return { id, chartBody, chart, html: `<section class="result-section rent-panel">
+      <h4>${esc(chart.title)}</h4><p>${esc(chart.coverage)} · 기준 ${esc(chart.as_of)}</p>
+      ${chart.columns.length > 1 ? `<label for="${id}-select">지표 </label><select id="${id}-select">${selections}</select>` : ''}
+      <div id="${id}">${chartBody(chart.columns[0])}</div><p>${esc(chart.note || '')} ${link(chart.url, 'HUG 공식 원문')}</p>
+    </section>`};
+  });
+  $('output').innerHTML = `<article class="card outcard"><h3>HUG 전세보증 사고 통계</h3>
+    ${charts.map(chart => chart.html).join('') || '<p>표시할 집계 수치가 없습니다.</p>'}
+    <p class="result-note">${esc(data.caution)}</p>
+    <details><summary>추가 공식 자료</summary><ul>${sourceList(data.statistics)}</ul></details>
+    <button class="tbtn" type="button" data-continue="hug">HUG 공개명단 확인</button>
+  </article>`;
+  charts.forEach(({id, chartBody, chart}) => {
+    const selection = $(id + '-select');
+    if (selection) selection.onchange = () => {
+      $(id).innerHTML = chartBody(chart.columns.find(column => column.key === selection.value));
+    };
+  });
+}
+function renderHugRecords(data) {
+  const rows = data.records.map(record => `<article>
+    <strong>${esc(record.name || '공개 항목')}</strong>
+    <p>${esc(record.address || record.region || '')}${record.basis_date ? ' · 자료 기준 ' + esc(record.basis_date) : ''}</p>
+    ${mapLink(record.region, '명단에 기재된 주소의 자치구 보기')}
+  </article>`).join('');
+  $('output').innerHTML = `<article class="card outcard"><h3>HUG 공개명단 조회 결과</h3>
+    <p>검색 일치 ${formatNumber(data.count)}건${data.count > data.records.length ? ' · 처음 ' + data.records.length + '건 표시' : ''} · 조회일 ${esc(data.as_of)}</p>
+    ${rows ? `<div class="result-grid">${rows}</div>` : ''}
+    <p class="result-note">${esc(data.caution)}</p>
+    <ul>${sourceList(data.sources)}</ul>
+    <button class="tbtn" type="button" data-continue="hugstats">지역별 사고 통계 보기</button>
+  </article>`;
+}
+function render(data, request = {}) {
+  const out = $('output');
+  visible('#output', true);
+  if (data.error) {
+    out.innerHTML = `<article class="card outcard"><p class="error">${esc(data.error)}</p>
+      ${data.sources?.length ? `<ul>${sourceList(data.sources)}</ul>` : ''}
+      ${request.doc ? `<p>${link(request.doc[2], request.doc[1])}</p>` : ''}</article>`;
+  } else if (data.out_of_scope) {
+    out.innerHTML = `<article class="card outcard"><p class="answer">${esc(data.answer)}</p></article>`;
+  } else if (data.statistics) {
+    renderHugCharts(data);
+  } else if (data.records) {
+    renderHugRecords(data);
+  } else {
+    const sources = data.sources || [];
+    const claimed = new Set([...(data.ordinance_sources || []), ...(data.announcement_sources || []), ...(data.national_law_sources || [])].map(s => s.url));
+    const otherSources = sourceList(sources.filter(s => !claimed.has(s.url)));
+    const checks = (data.checks || []).map(item => `<li>${esc(item)}</li>`).join('');
+    const group = (title, items, excerpts) => items?.length ?
+      `<h5>${title}</h5><ul>${sourceList(items, excerpts)}</ul>` : '';
+    const draft = data.draft && request.doc ? `<section class="result-section"><h4>${esc(request.doc[0])} 초안</h4>
+      <div class="doc-actions"><button class="tbtn primary" id="savePdf" type="button">PDF 미리보기</button>
+      <button class="tbtn" id="copyDraft" type="button">문안 복사</button> ${link(request.doc[2], request.doc[1])}</div>
+      <details><summary>초안 내용 읽기</summary><div class="draft">${esc(data.draft)}</div></details></section>` : '';
+    const help = request.direct ? `<button class="tbtn" type="button" data-continue="${esc(request.topic)}" data-use-current>조건을 입력해 더 알아보기</button>` :
+      request.mode === 'support' ? '<button class="tbtn" type="button" data-continue="inquiry" data-use-current>이 상황으로 기관에 문의하기</button>' : '';
+    out.innerHTML = `<article class="card outcard"><h3>핵심 답변</h3>${profileResult(data)}
+      <p class="answer">${esc(data.answer || '안내를 생성하지 못했습니다.')}</p>
+      ${actionList('다음 단계', data.next_steps, sources)}
+      ${actionList('준비 자료', data.documents, sources)}
+      ${draft}
+      ${renderPrograms(data.programs)}
+      ${publicResult(data.public_data, data.profile_summary)}
+      ${checks ? `<details><summary>입력 조건과 공고 기준 대조</summary><ul>${checks}</ul></details>` : ''}
+      <section class="result-section"><h4>공식 출처</h4>
+        ${group('서울시 조례', data.ordinance_sources, true)}
+        ${group('모집공고·사업 안내', data.announcement_sources)}
+        ${group('국가 법령', data.national_law_sources, true)}
+        ${otherSources ? `<ul>${otherSources}</ul>` : ''}
+        ${data.law_api_status === 'unavailable' ? '<p>현재 답변에 인용할 서울시 조례 원문을 확보하지 못했습니다.</p>' : ''}
+      </section>
+      ${data.caution ? `<p class="result-note">${esc(data.caution)}</p>` : ''}${help}
+    </article>`;
+    if ($('copyDraft')) $('copyDraft').onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(data.draft);
+        $('copyDraft').textContent = '복사했습니다';
+      } catch { $('copyDraft').textContent = '복사 권한을 확인해 주세요'; }
+    };
+    if ($('savePdf')) $('savePdf').onclick = () => printDraftPdf(data, request);
+  }
+  out.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+$('output').addEventListener('click', event => {
+  const target = event.target.closest('[data-continue]');
+  if (!target) return;
+  const next = target.dataset.continue;
+  if (target.hasAttribute('data-use-current')) {
+    const previous = questionInput.value.trim();
+    chooseTopic(next);
+    if (next === 'inquiry' && previous) $('other').value = previous.slice(0, 300);
+  } else chooseTopic(next, options[next][1]);
+});
+function buildRequest(direct) {
+  const question = questionInput.value.trim();
+  let type = '';
+  if (mode === 'inquiry') type = 'inquiry';
+  if (mode === 'application') type = topic === 'support' ? 'youth_monthly' : $('documentType').value;
+  if (mode === 'contract') {
+    type = direct ? (/매매/.test(question) ? 'sale' : /전세/.test(question) ? 'jeonse' : 'monthly') :
+      (topic === 'support' ? 'monthly' : $('documentType').value);
+  }
+  const doc = documents[type];
+  const payload = {stage, mode, question};
+  const field = (name, id) => payload[name] = $(id).value;
+  const take = fields => Object.entries(fields).forEach(([name, id]) => field(name, id));
+  if (mode === 'hug') field('landlord_query', 'landlordQuery');
+  if (!direct && topic === 'support') {
+    payload.seoul_resident = $('seoul').checked;
+    take({age: 'age', income: 'income', household: 'household'});
+    if (stage === 'after') take({deposit: 'deposit', rent: 'rent'});
+  }
+  if (mode === 'inquiry' && !direct) field('other', 'other');
+  if (['recommend', 'listings'].includes(mode)) {
+    if (direct) {
+      const districts = [...$('district').options].slice(1);
+      payload.district = districts.find(option => question.includes(option.value))?.value || '';
+      payload.age = question.match(/(\d{2})\s*세/)?.[1] || '';
+    } else {
+      take({district: 'district', budget_rent: 'budgetRent', budget_deposit: 'budgetDeposit'});
+      if (mode === 'recommend') take({age: 'age', profile: 'profile'});
+    }
+  }
+  if (mode === 'contract') {
+    payload.contract_type = doc[3];
+    if (!direct && topic !== 'support') {
+      take({building_type: 'buildingType', move_in_date: 'moveInDate', special_terms: 'specialTerms'});
+      if (type === 'sale') take({sale_price: 'salePrice', down_payment: 'downPayment', interim_payment: 'interimPayment', balance_payment: 'balancePayment', balance_date: 'balanceDate'});
+      else take({deposit: 'deposit', contract_start: 'contractStart', contract_end: 'contractEnd', maintenance_fee: 'maintenanceFee'});
+      if (type === 'monthly') take({rent: 'rent', payment_day: 'paymentDay'});
+    }
+  }
+  if (mode === 'application') {
+    payload.application_type = doc[0];
+    if (topic !== 'support') take({application_age: 'applicationAge', application_district: 'applicationDistrict', application_detail: 'applicationDetail'});
+  }
+  return {payload, type, doc, mode, topic, direct};
+}
+async function submit(direct = false) {
+  const request = buildRequest(direct);
+  if (!request.payload.question) return questionInput.focus();
+  if (request.mode === 'hug' && !request.payload.landlord_query.trim()) {
+    $('landlordQuery').focus();
+    return;
+  }
+  pending?.abort();
+  const current = new AbortController();
+  pending = current;
+  visible('#output', true);
+  $('output').innerHTML = '<p class="statusbox" role="status">공식 자료를 확인하고 있어요.</p>';
+  try {
+    const response = await fetch('/ui/housing/ask', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(request.payload), signal: current.signal,
+    });
+    const result = await response.json();
+    if (pending === current) render(result, request);
+  } catch (error) {
+    if (pending === current && error.name !== 'AbortError') {
+      render({error: '연결이 지연되었습니다. 잠시 후 다시 시도해 주세요.'}, request);
+    }
+  } finally {
+    if (pending === current) pending = undefined;
+  }
+}
+$('submit').onclick = () => submit();
 </script>
 </body>
 </html>
