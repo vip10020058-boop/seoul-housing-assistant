@@ -8,6 +8,7 @@ import json
 import logging
 import re
 import xml.etree.ElementTree as ET
+from datetime import date, timedelta
 
 import requests
 
@@ -20,6 +21,114 @@ SERVICE_URL = "https://www.law.go.kr/DRF/lawService.do"
 ORDINANCE_NAME = "서울특별시 청년주거 기본 조례"
 NOTICE_URL = "https://soco.seoul.go.kr/bos/cmmn/file/fileDown.do?atchFileId=d964a2a457e3421c95f8b3de69846c99&bbsId=&fileSn=1&menuNo=400018"
 PROGRAM_URL = "https://soco.seoul.go.kr/youth/bbs/BMSR00174/view.do?boardId=6734&menuNo=400043&pageIndex=1"
+LH_NOTICE_URL = "https://www.data.go.kr/data/15058530/openapi.do"
+MOLIT_RENT_URL = "https://www.data.go.kr/data/15126474/openapi.do"
+HUG_DEFAULT_URL = "https://www.khug.or.kr/houstar/web/p03/01/p030105.jsp?articleId=38236&currentPage=1&mode=S"
+
+SEOUL_DISTRICTS = {
+    "종로구": "11110", "중구": "11140", "용산구": "11170", "성동구": "11200",
+    "광진구": "11215", "동대문구": "11230", "중랑구": "11260", "성북구": "11290",
+    "강북구": "11305", "도봉구": "11320", "노원구": "11350", "은평구": "11380",
+    "서대문구": "11410", "마포구": "11440", "양천구": "11470", "강서구": "11500",
+    "구로구": "11530", "금천구": "11545", "영등포구": "11560", "동작구": "11590",
+    "관악구": "11620", "서초구": "11650", "강남구": "11680", "송파구": "11710", "강동구": "11740",
+}
+
+
+def _public_record_list(value):
+    """Find likely record arrays in vendor JSON while retaining the original public fields."""
+    if isinstance(value, list):
+        if value and all(isinstance(item, dict) for item in value):
+            return value
+        for item in value:
+            found = _public_record_list(item)
+            if found:
+                return found
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            if isinstance(item, list):
+                found = _public_record_list(item)
+                if found:
+                    return found
+        for item in value.values():
+            found = _public_record_list(item)
+            if found:
+                return found
+    return []
+
+
+def hug_default_debtors(api_key, query=""):
+    """Query HUG's public chronic-default landlord list API without retaining its key."""
+    if not api_key or len(api_key) > 1024:
+        return {"error": "HUG 공개명단 API 키를 설정해 주세요."}
+    response = requests.get("https://www.khug.or.kr/defaultOnDebitList.do",
+                            params={"API_KEY": api_key}, timeout=(5, 20))
+    response.raise_for_status()
+    data = response.json()
+    records = _public_record_list(data)
+    term = str(query or "").strip().lower()[:120]
+    if not term:
+        return {"error": "공개명단을 한꺼번에 열람하지 않도록 임대인 이름 또는 주소 일부를 입력해 주세요."}
+    records = [row for row in records if term in " ".join(str(v) for v in row.values()).lower()]
+    return {"records": records[:100], "count": len(records), "as_of": date.today().isoformat(),
+            "sources": [{"type": "HUG 상습 채무불이행자 공개 API", "title": "상습 채무불이행자 명단공개", "url": HUG_DEFAULT_URL,
+                         "updated": "수시 자동갱신"}],
+            "caution": "공개명단은 법정 지정된 대상자의 명단입니다. 검색 결과 없음은 해당 임대인의 안전이나 보증 가능성을 보증하지 않으며, 이름·주소 표기가 다르면 일치하지 않을 수 있습니다."}
+
+
+def hug_statistics():
+    """Return authoritative HUG statistical file sources and their stated coverage."""
+    return {"statistics": [
+        {"title": "지역별 전세금반환보증 사고현황", "coverage": "시·도·구별 최근 3개월 평균 사고 건수·사고 금액·사고율", "as_of": "2026-08-31", "format": "XLSX", "url": "https://www.data.go.kr/data/15134221/fileData.do"},
+        {"title": "전세관련 현황", "coverage": "보증 가입·사고 건수와 금액(2013~2024 및 2025년 5월까지), 경·공매지원 신청자의 피해주택 수(2023-07~2025-05)", "as_of": "2025-05", "format": "XLSX", "url": "https://www.data.go.kr/data/15144220/fileData.do"},
+        {"title": "서울 전세보증금반환보증 사고 및 대위변제 현황", "coverage": "서울시 연도별 사고 건수·금액·대위변제 현황(2020~2023)", "as_of": "2023", "format": "XLSX", "url": "https://www.khug.or.kr/houstar/web/p03/01/p030105.jsp?articleId=37002&currentPage=1&mode=S"},
+        {"title": "HUG 전세보증금반환보증 사고건수 및 금액", "coverage": "연도별 공식 경영공시 목록과 첨부 원문", "as_of": "공식 공시 페이지에서 확인", "format": "공시 자료", "url": "https://www.khug.or.kr/hug/web/mo/ib/moib000028.jsp"},
+    ], "caution": "이 통계는 HUG 파일 데이터/공시자료입니다. 현재 사용자 발급 OPEN API는 상습 채무불이행자 명단 조회용이며, 이 통계를 반환하지 않습니다. 피해주택 수는 해당 자료 설명상 경·공매지원 신청자의 주택 수이므로 전체 전세사기 피해주택 수와 같지 않습니다."}
+
+
+def _lh_notices(api_key, keyword="서울"):
+    if not api_key:
+        return [], "공공데이터포털 API 키가 없어 LH 임대공고를 조회하지 못했습니다."
+    today = date.today()
+    start = (today - timedelta(days=180)).strftime("%Y.%m.%d")
+    end = today.strftime("%Y.%m.%d")
+    url = "https://apis.data.go.kr/B552555/lhLeaseNoticeInfo1/lhLeaseNoticeInfo1"
+    response = requests.get(url, params={"ServiceKey": api_key, "PG_SZ": 100, "PAGE": 1,
+                           "PAN_NM": keyword or "서울", "UPP_AIS_TP_CD": "06", "CNP_CD": "11",
+                           "PAN_NT_ST_DT": start, "CLSG_DT": end}, timeout=(5, 20))
+    response.raise_for_status()
+    data = response.json()
+    records = _public_record_list(data)
+    return records[:50], ""
+
+
+def _molit_rents(api_key, district="마포구", months=3):
+    if not api_key:
+        return [], "공공데이터포털 API 키가 없어 국토부 실거래를 조회하지 못했습니다."
+    code = SEOUL_DISTRICTS.get(district)
+    if not code:
+        return [], "서울시 구를 선택해 주세요."
+    url = "https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent"
+    now = date.today()
+    rows = []
+    for offset in range(max(1, min(int(months), 6))):
+        year, month = now.year, now.month - offset
+        while month <= 0:
+            year -= 1
+            month += 12
+        response = requests.get(url, params={"serviceKey": api_key, "LAWD_CD": code,
+                               "DEAL_YMD": f"{year}{month:02d}", "pageNo": 1, "numOfRows": 100},
+                               timeout=(5, 20))
+        response.raise_for_status()
+        root = ET.fromstring(response.content)
+        result_code = root.findtext(".//header/resultCode") or root.findtext(".//cmmMsgHeader/returnReasonCode")
+        if result_code and result_code not in {"00", "000", "INFO-000"}:
+            raise ValueError("국토부 전월세 API 응답 오류")
+        for item in root.findall(".//item"):
+            row = {child.tag: (child.text or "").strip() for child in item}
+            row["조회월"] = f"{year}-{month:02d}"
+            rows.append(row)
+    return rows[:250], ""
 
 
 def connection_status():
@@ -187,6 +296,9 @@ def _compare_terms(body):
         facts[key] = _number(body.get(key), maximum)
     facts["seoul_resident"] = body.get("seoul_resident") is True
     facts["question"] = str(body.get("question") or "").strip()[:1800]
+    facts["district"] = str(body.get("district") or "").strip()[:20]
+    facts["budget_rent"] = _number(body.get("budget_rent"), 10_000_000)
+    facts["budget_deposit"] = _number(body.get("budget_deposit"), 2_000_000_000)
 
     checks = []
     if facts["age"] is not None:
@@ -214,7 +326,7 @@ def _compare_terms(body):
     return stage, facts, checks
 
 
-def _prompt(stage, facts, checks, law_refs, law_errors):
+def _prompt(stage, facts, checks, law_refs, law_errors, public_context=""):
     laws = "\n\n".join(
         f"[{ref['kind']}] {ref['title']} / 시행일 {ref.get('effective') or 'API 미제공'}\n{ref.get('excerpt') or '조문 원문을 조회하지 못함'}"
         for ref in law_refs
@@ -225,11 +337,14 @@ def _prompt(stage, facts, checks, law_refs, law_errors):
         "application": "계약 후라면 빈칸을 포함한 신청서 초안을 draft에 작성한다. 계약 전이면 draft는 빈 문자열로 둔다.",
         "inquiry": "draft에 담당 기관에 보낼 문의 문안을 작성한다. 아직 공고되지 않은 다음 일정과 필요한 증빙을 확인하는 내용으로 한다.",
         "contract": "입력한 임대차 보증금·월세의 공고상 금액 기준 비교와 확인사항을 중심으로 답한다. draft는 빈 문자열로 둔다.",
+        "recommend": "입력한 예산·지역·가구 조건을 기준으로 공공 임대주택 공고와 지원제도를 추천한다. 조회된 데이터에 있는 것만 말하고, 실거래는 현재 매물로 표현하지 않는다.",
+        "listings": "LH 공공임대 모집공고와 국토부 전월세 실거래 참고 자료를 구분해 안내한다. 실거래는 현재 매물이 아니며 계약 가능 매물이라고 표현하지 않는다.",
     }.get(mode, "지원 절차 안내와 필요한 자료를 설명한다.")
     return [
         {"role": "system", "content": """너는 서울시 청년 주거지원 절차를 안내하는 시민용 AI 도우미다. 법률 자문이나 선정 확정 판정을 하지 않는다.
 주거지원 공고의 기준·일정은 제공된 [서울시 2026 모집공고] 내용에만 근거한다. 2026 모집은 마감됐으며 2027 일정은 공고 후 안내 상태다. 미래 일정을 추측하지 않는다.
 법령에 관한 설명은 [법제처 API 결과]에 실제로 있는 내용만 사용한다. API 결과가 없거나 원문 조회가 실패하면 법령 내용은 확인하지 못했다고 표시하고 공식 링크로 안내한다. 청년월세지원 공고에 없는 조건이나 조항번호를 만들지 않는다.
+공공 공고·실거래 API가 실패했거나 결과가 비어 있으면 결과를 만들어 내지 말고 조회 실패 또는 결과 없음이라고 밝힌다. 국토부 실거래는 과거 신고 계약 사례이므로 현재 매물이라고 부르지 않는다. 예산/지역에 맞는 중개 매물 자체는 이 API 결과에 포함되지 않는 한 찾았다고 주장하지 않는다.
 금액 대조는 제공된 입력 정보의 예비 계산이며 모든 신청 제외 요건·소득·재산·가구 유형·중복수혜를 검사하지 않았으므로 자격 확정이라고 말하지 않는다. 계약서가 아직 없는 사용자에게 임대차 계약을 서둘러 체결하라고 하지 않는다.
 draft는 선택 기능의 지침에 따라 필요한 경우에만 작성한다. 신청서 초안 기능은 계약 후에만, 문의 문안 기능은 언제든 초안을 만들 수 있다. 이름·주민등록번호·주소·계좌번호를 요구하지 않고, 모르는 사실은 빈칸으로 둔다. 답변은 친절하고 간결한 한국어다."""},
         {"role": "user", "content": f"""다음 상황에 대해 선택한 기능의 요청 지침에 따라 안내해 주세요.
@@ -250,6 +365,9 @@ draft는 선택 기능의 지침에 따라 필요한 경우에만 작성한다. 
 [법제처 API 상태]
 {'; '.join(law_errors) if law_errors else '조회 완료'}
 
+[공공주거·실거래 API 조회 결과]
+{public_context or '이번 기능에서는 조회하지 않음'}
+
 JSON 결과 필드 summary, next_steps, documents, draft, caution을 채워 주세요. next_steps/documents는 배열입니다. 계약 전이면 draft는 빈 문자열로 둡니다. 조문을 언급할 경우 출처 제목을 함께 적어 주세요."""},
     ]
 
@@ -257,22 +375,59 @@ JSON 결과 필드 summary, next_steps, documents, draft, caution을 채워 주�
 def answer(body):
     api_key = str(body.get("upstage_api_key") or config.UPSTAGE_API_KEY).strip()
     law_oc = str(body.get("law_oc") or config.LAW_OC or "test").strip()
+    mode = body.get("mode") if body.get("mode") in {"support", "application", "inquiry", "contract", "recommend", "listings", "hug", "hugstats"} else "support"
+    if mode == "hugstats":
+        return hug_statistics()
+    if mode == "hug":
+        try:
+            return hug_default_debtors(str(body.get("hug_api_key") or "").strip(), body.get("landlord_query", ""))
+        except Exception as exc:
+            log.warning("HUG public list lookup failed: %s", type(exc).__name__)
+            return {"error": "HUG 공개명단 API를 조회하지 못했습니다. HUG API 키와 사용 권한을 확인해 주세요."}
     if not api_key:
         return {"error": "화면 상단의 API 설정에서 Upstage와 법제처 API를 먼저 연결해 주세요.", "answer": "", "sources": []}
     if len(api_key) > 512 or len(law_oc) > 128:
         return {"error": "API 설정값을 확인해 주세요.", "answer": "", "sources": []}
     stage, facts, checks = _compare_terms(body)
-    mode = body.get("mode") if body.get("mode") in {"support", "application", "inquiry", "contract"} else "support"
     facts["mode"] = mode
     if body.get("other"):
         facts["question"] = (facts["question"] + "\n추가 질문: " + str(body["other"]).strip()[:160]).strip()
     law_refs, law_errors = _law_references(law_oc)
-    raw = upstage.chat(_prompt(stage, facts, checks, law_refs, law_errors), response_format=SCHEMA,
+    public_context = ""
+    public_sources = []
+    public_data = {"lh_notices": [], "rent_records": []}
+    if mode in {"recommend", "listings"}:
+        data_key = str(body.get("public_data_key") or "").strip()
+        district = str(body.get("district") or "마포구").strip()
+        try:
+            notices, notice_error = _lh_notices(data_key)
+            public_data["lh_notices"] = notices[:30]
+            public_context += "[한국토지주택공사 임대주택 공고 API]\n" + json.dumps(notices[:20], ensure_ascii=False)
+            public_sources.append({"type": "LH 임대공고 API", "title": "한국토지주택공사 분양임대공고문 조회 서비스", "url": LH_NOTICE_URL})
+            if notice_error:
+                public_context += "\n" + notice_error
+        except Exception as exc:
+            log.warning("LH notice lookup failed: %s", type(exc).__name__)
+            public_context += "LH 임대공고 API 조회 실패. 인증키와 서비스 사용 신청 상태를 확인해야 함."
+        try:
+            rent_rows, rent_error = _molit_rents(data_key, district)
+            public_data["rent_records"] = rent_rows[:80]
+            public_context += "\n[국토교통부 아파트 전월세 실거래 API] 최근 신고 실거래 참고값이며 현재 매물 목록이 아님\n" + json.dumps(rent_rows[:100], ensure_ascii=False)
+            public_sources.append({"type": "국토부 실거래 API", "title": "국토교통부 아파트 전월세 실거래가 자료", "url": MOLIT_RENT_URL})
+            if rent_error:
+                public_context += "\n" + rent_error
+        except Exception as exc:
+            log.warning("MOLIT rent lookup failed: %s", type(exc).__name__)
+            public_context += "\n국토부 실거래 API 조회 실패. 인증키와 서비스 사용 신청 상태를 확인해야 함."
+    raw = upstage.chat(_prompt(stage, facts, checks, law_refs, law_errors, public_context), response_format=SCHEMA,
                        temperature=0.0, api_key=api_key)
     data = json.loads(raw)
     sources = [{"type": "서울시 모집공고", "title": "2026년 서울시 청년월세지원 모집 공고 제2026-1440호", "url": NOTICE_URL, "updated": "2026-04-30"},
                {"type": "서울시 안내", "title": "서울시 청년월세지원 안내 (2026년 모집 마감·2027년 공고 예정)", "url": PROGRAM_URL, "updated": "2026-11-12"}]
     sources.extend({"type": x["kind"], "title": x["title"], "url": x["url"], "effective": x.get("effective", ""), "excerpt": x.get("excerpt", "")[:1600]} for x in law_refs)
+    sources.extend(public_sources)
     return {"stage": stage, "mode": mode, "answer": data["summary"], "next_steps": data["next_steps"], "documents": data["documents"],
             "draft": data["draft"], "caution": data["caution"], "checks": checks, "sources": sources,
+            "public_data": public_data,
             "law_api_status": "ok" if law_refs else "unavailable", "law_api_warning": "; ".join(law_errors)}
+
