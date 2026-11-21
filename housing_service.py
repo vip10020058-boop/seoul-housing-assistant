@@ -9,6 +9,7 @@ import logging
 import re
 import xml.etree.ElementTree as ET
 from datetime import date, timedelta
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 
@@ -121,30 +122,83 @@ def _lh_notices(api_key, keyword="서울"):
 def _molit_rents(api_key, district="마포구", months=3):
     if not api_key:
         return [], "공공데이터포털 API 키가 없어 국토부 실거래를 조회하지 못했습니다."
-    code = SEOUL_DISTRICTS.get(district)
-    if not code:
+    districts = SEOUL_DISTRICTS if district == "서울 전체(구별 비교)" else ({district: SEOUL_DISTRICTS[district]} if district in SEOUL_DISTRICTS else {})
+    if not districts:
         return [], "서울시 구를 선택해 주세요."
     url = "https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent"
     now = date.today()
-    rows = []
-    for offset in range(max(1, min(int(months), 6))):
+    periods = []
+    for offset in range(1 if district == "서울 전체(구별 비교)" else max(1, min(int(months), 6))):
         year, month = now.year, now.month - offset
         while month <= 0:
             year -= 1
             month += 12
+        periods.append((year, month))
+    def fetch(area, code, year, month):
         response = requests.get(url, params={"serviceKey": api_key, "LAWD_CD": code,
-                               "DEAL_YMD": f"{year}{month:02d}", "pageNo": 1, "numOfRows": 100},
+                               "DEAL_YMD": f"{year}{month:02d}", "pageNo": 1, "numOfRows": 1000},
                                timeout=(5, 20))
         response.raise_for_status()
         root = ET.fromstring(response.content)
         result_code = root.findtext(".//header/resultCode") or root.findtext(".//cmmMsgHeader/returnReasonCode")
         if result_code and result_code not in {"00", "000", "INFO-000"}:
             raise ValueError("국토부 전월세 API 응답 오류")
+        result = []
         for item in root.findall(".//item"):
             row = {child.tag: (child.text or "").strip() for child in item}
             row["조회월"] = f"{year}-{month:02d}"
-            rows.append(row)
-    return rows[:250], ""
+            row["서울 자치구"] = area
+            result.append(row)
+        return result
+    rows = []
+    jobs = [(area, code, year, month) for area, code in districts.items() for year, month in periods]
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = [pool.submit(fetch, *job) for job in jobs]
+        for future in as_completed(futures):
+            rows.extend(future.result())
+    return rows[:25000], ""
+
+
+def _rent_summary(rows):
+    """Aggregate official MOLIT apartment rent records; deposit/rent values are in 만원."""
+    def number(row, *keys):
+        for key in keys:
+            raw = str(row.get(key, "")).replace(",", "").strip()
+            if raw:
+                try:
+                    return float(raw)
+                except ValueError:
+                    pass
+        return None
+
+    monthly, by_district = {}, {}
+    deposits, rents = [], []
+    for row in rows:
+        period = str(row.get("조회월", ""))
+        group = monthly.setdefault(period, {"month": period, "count": 0})
+        group["count"] += 1
+        deposit = number(row, "보증금액", "deposit")
+        rent = number(row, "월세금액", "monthlyRent")
+        if deposit is not None:
+            deposits.append(deposit)
+        if rent is not None:
+            rents.append(rent)
+        area = row.get("서울 자치구", "")
+        if area:
+            group = by_district.setdefault(area, {"district": area, "count": 0, "deposits": [], "rents": []})
+            group["count"] += 1
+            if deposit is not None: group["deposits"].append(deposit)
+            if rent is not None: group["rents"].append(rent)
+    avg = lambda values: round(sum(values) / len(values), 1) if values else None
+    district_rows = [{"district": item["district"], "count": item["count"],
+                      "average_deposit_manwon": avg(item["deposits"]),
+                      "average_monthly_rent_manwon": avg(item["rents"])}
+                     for item in by_district.values()]
+    return {"count": len(rows), "average_deposit_manwon": avg(deposits),
+            "average_monthly_rent_manwon": avg(rents),
+            "months": sorted(monthly.values(), key=lambda x: x["month"]),
+            "districts": sorted(district_rows, key=lambda x: x["district"]),
+            "unit": "만원", "source_url": MOLIT_RENT_URL}
 
 
 def connection_status():
@@ -312,6 +366,10 @@ def _compare_terms(body):
     facts["district"] = str(body.get("district") or "").strip()[:20]
     facts["budget_rent"] = _number(body.get("budget_rent"), 10_000_000)
     facts["budget_deposit"] = _number(body.get("budget_deposit"), 2_000_000_000)
+    facts["contract_terms"] = {
+        key: str(body.get(key) or "").strip()[:180]
+        for key in ("contract_start", "contract_end", "payment_day", "move_in_date", "maintenance_fee", "special_terms", "building_type")
+    }
 
     checks = []
     if facts["age"] is not None:
@@ -349,7 +407,7 @@ def _prompt(stage, facts, checks, law_refs, law_errors, public_context=""):
         "support": "지원 시기·자격과 다음 절차를 중심으로 답하고 draft는 빈 문자열로 둔다. 서울시 조례와 해당 연도 모집공고 기준을 구분한다.",
         "application": "계약 후라면 빈칸을 포함한 신청서 초안을 draft에 작성한다. 계약 전이면 draft는 빈 문자열로 둔다.",
         "inquiry": "draft에 담당 기관에 보낼 문의 문안을 작성한다. 아직 공고되지 않은 다음 일정과 필요한 증빙을 확인하는 내용으로 한다.",
-        "contract": "입력한 임대차 보증금·월세의 공고상 금액 기준 비교와 확인사항을 중심으로 답한다. draft는 빈 문자열로 둔다.",
+        "contract": "주택임대차계약서 초안을 draft에 작성한다. 사용자 입력의 조건을 사용하고 미입력 정보는 [기재 필요]로 남긴다. 임대인·임차인의 성명, 주민번호, 상세 주소, 계좌정보는 묻거나 지어내지 않는다. 목적물, 계약기간, 보증금, 월세, 지급일, 관리비, 인도일, 특약, 서명란을 포함한 바로 복사할 수 있는 초안으로 만든다. 법령 API 원문에 포함된 사항만 법적 근거로 언급하며 법률 유효성을 보장하지 않는다.",
         "recommend": "입력한 예산·지역·가구 조건을 기준으로 공공 임대주택 공고와 지원제도를 추천한다. 조회된 데이터에 있는 것만 말하고, 실거래는 현재 매물로 표현하지 않는다.",
         "listings": "LH 공공임대 모집공고와 국토부 전월세 실거래 참고 자료를 구분해 안내한다. 실거래는 현재 매물이 아니며 계약 가능 매물이라고 표현하지 않는다.",
     }.get(mode, "지원 절차 안내와 필요한 자료를 설명한다.")
@@ -361,7 +419,7 @@ def _prompt(stage, facts, checks, law_refs, law_errors, public_context=""):
 법령에 관한 설명은 [서울특별시 조례·법제처 API 결과]에 실제로 있는 내용만 사용한다. 조례/API 결과가 없거나 원문 조회가 실패하면 법령 내용을 확인하지 못했다고 표시한다. 모집공고에 없는 조건이나 조항번호를 만들지 않는다.
 공공 공고·실거래 API가 실패했거나 결과가 비어 있으면 결과를 만들어 내지 말고 조회 실패 또는 결과 없음이라고 밝힌다. 국토부 실거래는 과거 신고 계약 사례이므로 현재 매물이라고 부르지 않는다. 예산/지역에 맞는 중개 매물 자체는 이 API 결과에 포함되지 않는 한 찾았다고 주장하지 않는다.
 금액 대조는 제공된 입력 정보의 예비 계산이며 모든 신청 제외 요건·소득·재산·가구 유형·중복수혜를 검사하지 않았으므로 자격 확정이라고 말하지 않는다. 계약서가 아직 없는 사용자에게 임대차 계약을 서둘러 체결하라고 하지 않는다.
-draft는 선택 기능의 지침에 따라 필요한 경우에만 작성한다. 신청서 초안 기능은 계약 후에만, 문의 문안 기능은 언제든 초안을 만들 수 있다. 이름·주민등록번호·주소·계좌번호를 요구하지 않고, 모르는 사실은 빈칸으로 둔다. 답변은 친절하고 간결한 한국어다."""},
+draft는 선택 기능의 지침에 따라 필요한 경우에만 작성한다. 계약서 초안은 사용자가 입력한 조건만 반영하고 빈 정보는 [기재 필요]로 표시한다. 법령 원문에 없는 권리·의무나 특약을 법정 필수조항처럼 꾸며내지 않는다. 이름·주민등록번호·상세주소·계좌번호를 요구하지 않는다. 답변은 친절하고 간결한 한국어다."""},
         {"role": "user", "content": f"""다음 상황에 대해 선택한 기능의 요청 지침에 따라 안내해 주세요.
 
 [선택 기능] {mode}
@@ -383,7 +441,7 @@ draft는 선택 기능의 지침에 따라 필요한 경우에만 작성한다. 
 [공공주거·실거래 API 조회 결과]
 {public_context or '이번 기능에서는 조회하지 않음'}
 
-JSON 결과 필드 summary, next_steps, documents, draft, caution을 채워 주세요. next_steps/documents는 배열입니다. 계약 전이면 draft는 빈 문자열로 둡니다. 조례 설명은 실제 조회된 원문에 한정하고, 조례와 공고 기준을 구획별로 분리하세요."""},
+JSON 결과 필드 summary, next_steps, documents, draft, caution을 채워 주세요. next_steps/documents는 배열입니다. 계약서 초안은 사용자가 입력한 계약 조건과 확인된 법령을 바탕으로 작성하고, 확인하지 못한 세부사항은 [기재 필요]로 남깁니다. 조례 설명은 실제 조회된 원문에 한정하고, 조례와 공고 기준을 구획별로 분리하세요."""},
     ]
 
 
@@ -411,7 +469,7 @@ def answer(body):
     law_refs, law_errors = _law_references(mode, facts, law_oc)
     public_context = ""
     public_sources = []
-    public_data = {"lh_notices": [], "rent_records": []}
+    public_data = {"lh_notices": [], "rent_records": [], "rent_summary": None}
     if mode in {"recommend", "listings"}:
         data_key = config.PUBLIC_DATA_API_KEY.strip()
         district = str(body.get("district") or "마포구").strip()
@@ -428,6 +486,7 @@ def answer(body):
         try:
             rent_rows, rent_error = _molit_rents(data_key, district)
             public_data["rent_records"] = rent_rows[:80]
+            public_data["rent_summary"] = _rent_summary(rent_rows)
             public_context += "\n[국토교통부 아파트 전월세 실거래 API] 최근 신고 실거래 참고값이며 현재 매물 목록이 아님\n" + json.dumps(rent_rows[:100], ensure_ascii=False)
             public_sources.append({"type": "국토부 실거래 API", "title": "국토교통부 아파트 전월세 실거래가 자료", "url": MOLIT_RENT_URL})
             if rent_error:
