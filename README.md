@@ -23,7 +23,7 @@ py -3 -m venv .venv
 
 브라우저에서 `http://127.0.0.1:8000/`에 접속합니다. 배포 사이트는 [seoul-housing-assistant.vercel.app](https://seoul-housing-assistant.vercel.app/)입니다.
 
-API 키는 화면에서 입력하지 않습니다. 로컬 실행은 `.env.example`을 `.env`로 복사해 `UPSTAGE_API_KEY`, `LAW_OC`, `PUBLIC_DATA_API_KEY`, `HUG_API_KEY`를 설정합니다. Vercel 배포는 프로젝트의 **Settings → Environment Variables**에 같은 이름으로 등록한 뒤 새 배포를 만드세요. `.env`는 `.gitignore`에 포함되어 공개 저장소에 올라가지 않습니다. 브라우저는 상담 조건만 서버에 보내고 키는 보내지 않습니다.
+API 키는 화면에서 입력하지 않습니다. 로컬 실행은 `.env.example`을 `.env`로 복사해 `UPSTAGE_API_KEY`, `LAW_OC`, `PUBLIC_DATA_API_KEY`, `MOLIT_API_KEY`, `HUG_API_KEY`를 설정합니다. 국토부 전월세 API 전용 키는 `MOLIT_API_KEY`에 입력합니다. 비워 두면 기존 호환을 위해 `PUBLIC_DATA_API_KEY`를 사용합니다. Vercel 배포는 프로젝트의 **Settings → Environment Variables**에 같은 이름으로 등록한 뒤 새 배포를 만드세요. `.env`는 `.gitignore`에 포함되어 공개 저장소에 올라가지 않습니다. 브라우저는 상담 조건만 서버에 보내고 키는 보내지 않습니다.
 
 ## 공식 데이터 출처
 

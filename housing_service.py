@@ -205,6 +205,7 @@ def connection_status():
     return {"upstage_configured": bool(config.UPSTAGE_API_KEY),
             "law_configured": bool(config.LAW_OC and config.LAW_OC != "test"),
             "public_data_configured": bool(config.PUBLIC_DATA_API_KEY),
+            "molit_configured": bool(config.MOLIT_API_KEY or config.PUBLIC_DATA_API_KEY),
             "hug_configured": bool(config.HUG_API_KEY)}
 
 
@@ -472,6 +473,7 @@ def answer(body):
     public_data = {"lh_notices": [], "rent_records": [], "rent_summary": None}
     if mode in {"recommend", "listings"}:
         data_key = config.PUBLIC_DATA_API_KEY.strip()
+        molit_key = (config.MOLIT_API_KEY or config.PUBLIC_DATA_API_KEY).strip()
         district = str(body.get("district") or "마포구").strip()
         try:
             notices, notice_error = _lh_notices(data_key)
@@ -484,7 +486,7 @@ def answer(body):
             log.warning("LH notice lookup failed: %s", type(exc).__name__)
             public_context += "LH 임대공고 API 조회 실패. 인증키와 서비스 사용 신청 상태를 확인해야 함."
         try:
-            rent_rows, rent_error = _molit_rents(data_key, district)
+            rent_rows, rent_error = _molit_rents(molit_key, district)
             public_data["rent_records"] = rent_rows[:80]
             public_data["rent_summary"] = _rent_summary(rent_rows)
             public_context += "\n[국토교통부 아파트 전월세 실거래 API] 최근 신고 실거래 참고값이며 현재 매물 목록이 아님\n" + json.dumps(rent_rows[:100], ensure_ascii=False)

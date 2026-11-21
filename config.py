@@ -21,6 +21,9 @@ UPSTAGE_BASE_URL = "https://api.upstage.ai/v1"
 # 법제처 OPEN API 인증값(OC). 'test'로도 응답하지만, 대회용으로는 open.law.go.kr에서 개인 OC를 신청하세요.
 LAW_OC = os.environ.get("LAW_OC", "test")
 PUBLIC_DATA_API_KEY = os.environ.get("PUBLIC_DATA_API_KEY", "")
+# Dedicated key for the Ministry of Land apartment rent transaction API.
+# Falls back to the general data.go.kr key for existing deployments.
+MOLIT_API_KEY = os.environ.get("MOLIT_API_KEY", "")
 HUG_API_KEY = os.environ.get("HUG_API_KEY", "")
 
 # ---- 대상: 서울특별시 조례 6종 (자치구 조례는 대상이 아닙니다) ----
