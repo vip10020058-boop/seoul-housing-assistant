@@ -36,6 +36,13 @@ body{background:#fff}.app{display:flex;min-height:100vh}.sidebar{display:flex;wi
 .result-grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr)); gap:10px}
 .result-grid article {border:1px solid var(--line); border-radius:8px; padding:12px}
 .result-grid p,.result-note {font-size:.94rem; color:#4f5a68; margin:6px 0}
+.result-map {margin:12px 0 16px; padding:12px; border:1px solid var(--line); border-radius:10px; background:#f8fafc}
+.result-map h5,.result-map p {margin:0 0 7px}
+.result-map figcaption {font-size:.9rem; color:#4f5a68}
+.map-tools {display:flex; flex-wrap:wrap; gap:7px 12px; align-items:center; margin:8px 0; font-size:.9rem}
+.map-tools select {max-width:100%; min-width:0; padding:5px; border:1px solid #aeb8c6; border-radius:6px; background:#fff; font:inherit; color:var(--text)}
+.map-tools a {color:var(--navy)}
+.result-map img {display:block; width:100%; height:auto; border-radius:7px}
 .excerpt div {white-space:pre-wrap; max-height:200px; overflow:auto; background:var(--soft); padding:8px}
 .chart-row {display:grid; grid-template-columns:minmax(5.5em, auto) minmax(22px, 1fr) minmax(4em, auto); align-items:center; gap:8px; margin:7px 0; font-size:.9rem}
 .chart-row b {text-align:right}
@@ -185,7 +192,10 @@ function link(url, label) {
   return trusted ? `<a href="${esc(trusted)}" target="_blank" rel="noopener noreferrer">${esc(label)} ↗</a>` : esc(label);
 }
 function mapLink(place, label = '카카오맵에서 보기') {
-  return place ? link('https://map.kakao.com/link/search/' + encodeURIComponent(place), label) : '';
+  return place ? link(mapSearchUrl(place), label) : '';
+}
+function mapSearchUrl(place) {
+  return 'https://map.kakao.com/link/search/' + encodeURIComponent(place);
 }
 function visible(selector, show) {
   document.querySelectorAll(selector).forEach(el => el.classList.toggle('hidden', !show));
@@ -411,7 +421,51 @@ function barRows(rows, label, unit, max = Math.max(1, ...rows.map(row => Number(
     return `<div class="chart-row"><span>${esc(row.label)}</span><div class="stat-track" aria-hidden="true"><i style="width:${width}%"></i></div><b aria-label="${esc(label + ' ' + value)}">${esc(value)}</b></div>`;
   }).join('');
 }
-function rentChart(summary) {
+function mapPanel(id, title, label, locations, caption, searchPlace = place => place) {
+  const mapped = (locations || []).filter(item => item.url?.startsWith('/ui/housing/map?'));
+  if (!mapped.length) return '';
+  const options = mapped.map(item => `<option value="${esc(item.url)}" data-place="${esc(item.place)}" data-search="${esc(searchPlace(item.place))}">${esc(item.place)}</option>`).join('');
+  return `<figure class="result-map" data-result-map>
+    <figcaption><h5>${esc(title)}</h5><p>${esc(caption)}</p></figcaption>
+    <div class="map-tools"><label for="${id}">${esc(label)}</label><select id="${id}">${options}</select>
+    <a href="${esc(mapSearchUrl(searchPlace(mapped[0].place)))}" target="_blank" rel="noopener noreferrer">카카오맵에서 열기 ↗</a></div>
+    <p role="status" class="result-note">지도를 불러오는 중입니다.</p>
+    <img width="640" height="320" class="hidden" alt="">
+  </figure>`;
+}
+function setupResultMaps(container) {
+  container.querySelectorAll('[data-result-map]').forEach(panel => {
+    const selection = panel.querySelector('select');
+    const external = panel.querySelector('a');
+    const status = panel.querySelector('[role="status"]');
+    let image = panel.querySelector('img');
+    const showMap = () => {
+      const option = selection.selectedOptions[0];
+      const next = image.cloneNode(false);
+      next.removeAttribute('src');
+      next.alt = option.dataset.place + ' 위치 지도';
+      next.classList.add('hidden');
+      image.replaceWith(next);
+      image = next;
+      external.href = mapSearchUrl(option.dataset.search);
+      status.textContent = '지도를 불러오는 중입니다.';
+      status.classList.remove('hidden');
+      next.addEventListener('load', () => {
+        if (!next.isConnected) return;
+        status.classList.add('hidden');
+        next.classList.remove('hidden');
+      }, {once:true});
+      next.addEventListener('error', () => {
+        if (!next.isConnected) return;
+        status.textContent = '이 위치의 지도를 불러오지 못했습니다. 카카오맵에서 위치를 확인할 수 있습니다.';
+      }, {once:true});
+      next.src = option.value;
+    };
+    selection.addEventListener('change', showMap);
+    showMap();
+  });
+}
+function rentChart(summary, districtMaps) {
   const acrossSeoul = summary.districts.length > 1;
   const counts = acrossSeoul ? [...summary.districts].sort((a, b) => b.count - a.count) : summary.months;
   const rows = counts.map(item => ({label: item.district || item.month, value: item.count}));
@@ -424,6 +478,8 @@ function rentChart(summary) {
       <article><small>평균 보증금</small><strong>${average(summary.average_deposit_manwon)}</strong></article>
       <article><small>월세 계약 평균 월세</small><strong>${average(summary.average_monthly_rent_manwon)}</strong></article>
     </div>
+    ${mapPanel('rentMapPlace', '자치구 위치', '자치구', districtMaps,
+      '지도는 구청 주변을 표시하며, 거래 수치는 해당 자치구 전체의 집계입니다.', place => '서울 ' + place + '청')}
     <h4>${acrossSeoul ? '자치구별 거래 건수' : '계약월별 거래 건수'}</h4>
     ${barRows(rows.slice(0, 10), '거래', '건')}
     ${rows.length > 10 ? `<details><summary>나머지 자치구 보기</summary>${barRows(rows.slice(10), '거래', '건', Math.max(1, ...rows.map(r => r.value)))}</details>` : ''}
@@ -440,9 +496,10 @@ function publicResult(publicData, profile) {
     ${(row.addresses || []).map(address => `<p>${esc(address)} · ${mapLink(address)}</p>`).join('')}
     ${link(row.url || 'https://apply.lh.or.kr/', row.url ? 'LH 공고 상세' : 'LH 청약플러스')}${row.addresses?.length ? '' : ' · 주소는 공고문에서 확인'} </article>`).join('');
   return `<section class="result-section"><h4>LH 공공임대 공고</h4>${areaMap ? `<p>${areaMap}</p>` : ''}
+    ${mapPanel('lhMapPlace', 'LH 단지 위치', '단지 주소', publicData.maps?.addresses, '공고에 공개된 단지 주소를 지도에서 확인하세요.')}
     ${rows ? `<p>공고별 임대료와 신청 요건을 확인해 주세요.</p><div class="result-grid">${rows}</div>` :
       `<p>${publicData.lh_status === 'ok' ? '조회 기간에 표시할 공고가 없습니다.' : 'LH 공고 조회에 연결하지 못했습니다.'} ${link('https://apply.lh.or.kr/', 'LH 청약플러스')}</p>`}
-    ${publicData.rent_summary ? rentChart(publicData.rent_summary) :
+    ${publicData.rent_summary ? rentChart(publicData.rent_summary, publicData.maps?.districts) :
       `<p>전월세 신고 통계를 표시할 수 없습니다. ${link('https://www.data.go.kr/data/15126474/openapi.do', '국토교통부 자료 안내')}</p>`}
   </section>`;
 }
@@ -535,6 +592,7 @@ function render(data, request = {}) {
       </section>
       ${data.caution ? `<p class="result-note">${esc(data.caution)}</p>` : ''}${help}
     </article>`;
+    setupResultMaps(out);
     if ($('copyDraft')) $('copyDraft').onclick = async () => {
       try {
         await navigator.clipboard.writeText(data.draft);

@@ -27,6 +27,8 @@ LH_DETAIL_API_KEY = os.environ.get("LH_DETAIL_API_KEY", "")
 # Falls back to the general data.go.kr key for existing deployments.
 MOLIT_API_KEY = os.environ.get("MOLIT_API_KEY", "")
 HUG_API_KEY = os.environ.get("HUG_API_KEY", "")
+KAKAO_MAP_REST_API_KEY = (os.environ.get("KAKAO_MAP_REST_API_KEY", "").strip()
+                          or os.environ.get("kakao_map", "").strip())
 
 # ---- 대상: 서울특별시 조례 6종 (자치구 조례는 대상이 아닙니다) ----
 TARGET_ORDINANCES = [

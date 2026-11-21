@@ -16,6 +16,7 @@ from urllib.parse import unquote
 import requests
 
 import config
+import housing_maps
 import upstage
 
 log = logging.getLogger(__name__)
@@ -321,7 +322,20 @@ def connection_status():
             "lh_configured": bool(config.LH_API_KEY.strip() or config.PUBLIC_DATA_API_KEY.strip()),
             "lh_detail_configured": bool(config.LH_DETAIL_API_KEY.strip()),
             "molit_configured": bool(config.MOLIT_API_KEY or config.PUBLIC_DATA_API_KEY),
-            "hug_configured": bool(config.HUG_API_KEY)}
+            "hug_configured": bool(config.HUG_API_KEY),
+            "kakao_map_configured": bool(config.KAKAO_MAP_REST_API_KEY)}
+
+
+def _public_map_locations(notices, rent_summary):
+    addresses = dict.fromkeys(address for notice in notices for address in notice["addresses"])
+    districts = sorted((rent_summary or {}).get("districts", []), key=lambda row: row["count"], reverse=True)
+    if not config.KAKAO_MAP_REST_API_KEY:
+        return {}
+    return {
+        "addresses": [{"place": place, "url": housing_maps.image_url("address", place)} for place in addresses],
+        "districts": [{"place": row["district"], "url": housing_maps.image_url("district", row["district"])}
+                      for row in districts if row["district"] in SEOUL_DISTRICTS],
+    }
 
 
 # 서울시 공고 제2026-1440호, 2026-04-30. 2026 회차는 2026-05-19 마감.
@@ -698,6 +712,8 @@ def answer(body):
     if mode == "inquiry":
         sources.extend([{"title": "서울시 응답소", "url": SEOUL_COMPLAINT_URL},
                         {"title": "국민신문고", "url": NATIONAL_COMPLAINT_URL}])
+    if mode in {"recommend", "listings"}:
+        public_data["maps"] = _public_map_locations(public_data["lh_notices"], public_data["rent_summary"])
     return {"stage": stage, "mode": mode, "answer": data["summary"], "next_steps": data["next_steps"][:3], "documents": data["documents"][:5],
             "draft": data["draft"], "caution": data["caution"], "checks": checks, "sources": sources,
             "ordinance_sources": ordinance_sources, "announcement_sources": announcement_sources,

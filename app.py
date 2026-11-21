@@ -11,7 +11,7 @@ import logging
 import time
 
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel
 from fastapi import Request
 import config
@@ -81,6 +81,28 @@ def housing_page():
 def housing_status():
     import housing_service
     return housing_service.connection_status()
+
+
+@app.get("/ui/housing/map", include_in_schema=False)
+async def housing_map(kind: str = "", place: str = "", sig: str = ""):
+    import requests
+    import housing_maps
+
+    if not housing_maps.valid_signature(kind, place, sig):
+        return Response(status_code=404)
+    try:
+        async with _limiter("map"):
+            image = await asyncio.to_thread(housing_maps.image_bytes, kind, place)
+    except requests.RequestException as exc:
+        status = exc.response.status_code if exc.response is not None else None
+        log.warning("Kakao map request failed: %s (%s)", type(exc).__name__, status)
+        return Response(status_code=502)
+    except (ValueError, KeyError, TypeError, AttributeError) as exc:
+        log.warning("Kakao map response invalid: %s", type(exc).__name__)
+        return Response(status_code=502)
+    if image is None:
+        return Response(status_code=404)
+    return Response(image, media_type="image/png", headers={"Cache-Control": "private, max-age=900"})
 
 
 @app.post("/ui/housing/ask")
