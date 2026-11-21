@@ -319,6 +319,8 @@ def _fetch_text(target, law, law_oc=None):
 
 
 def _relevant_ordinances(mode, facts):
+    if mode == "contract" and facts.get("contract_terms", {}).get("contract_type") == "매매":
+        return []
     text = " ".join((facts.get("question", ""), facts.get("other", ""), mode)).lower()
     selected = [ORDINANCE_TITLES[key] for key, words in SEOUL_ORDINANCE_TOPICS.items()
                 if any(word in text for word in words)]
@@ -344,15 +346,16 @@ def _law_references(mode, facts, law_oc=None):
         except Exception as exc:
             log.warning("housing ordinance API lookup failed: %s", type(exc).__name__)
             errors.append(f"법제처 자치법규 API 조회 실패: {title}")
-    try:
-        act = _law_search("law", "주택임대차보호법", law_oc=law_oc)
-        if act:
-            act["kind"] = "국가 법령 · 법제처 현행법령 API"
-            act["excerpt"] = _fetch_text("law", act, law_oc)
-            refs.append(act)
-    except Exception as exc:
-        log.warning("housing act API lookup failed: %s", type(exc).__name__)
-        errors.append("법제처 현행법령 API 조회에 실패했습니다")
+    if not (mode == "contract" and facts.get("contract_terms", {}).get("contract_type") == "매매"):
+        try:
+            act = _law_search("law", "주택임대차보호법", law_oc=law_oc)
+            if act:
+                act["kind"] = "국가 법령 · 법제처 현행법령 API"
+                act["excerpt"] = _fetch_text("law", act, law_oc)
+                refs.append(act)
+        except Exception as exc:
+            log.warning("housing act API lookup failed: %s", type(exc).__name__)
+            errors.append("법제처 현행법령 API 조회에 실패했습니다")
     return refs, errors
 
 
@@ -369,7 +372,7 @@ def _compare_terms(body):
     facts["budget_deposit"] = _number(body.get("budget_deposit"), 2_000_000_000)
     facts["contract_terms"] = {
         key: str(body.get(key) or "").strip()[:180]
-        for key in ("contract_start", "contract_end", "payment_day", "move_in_date", "maintenance_fee", "special_terms", "building_type")
+        for key in ("contract_type", "application_type", "application_age", "application_district", "application_detail", "contract_start", "contract_end", "payment_day", "move_in_date", "maintenance_fee", "special_terms", "building_type", "sale_price", "down_payment", "interim_payment", "balance_payment", "balance_date")
     }
 
     checks = []
@@ -406,9 +409,9 @@ def _prompt(stage, facts, checks, law_refs, law_errors, public_context=""):
     mode = facts["mode"]
     mode_instructions = {
         "support": "지원 시기·자격과 다음 절차를 중심으로 답하고 draft는 빈 문자열로 둔다. 서울시 조례와 해당 연도 모집공고 기준을 구분한다.",
-        "application": "계약 후라면 빈칸을 포함한 신청서 초안을 draft에 작성한다. 계약 전이면 draft는 빈 문자열로 둔다.",
+        "application": f"요청한 신청서 종류({facts.get('contract_terms', {}).get('application_type') or '주거지원 신청 준비서류'})의 작성용 초안을 draft에 작성한다. 청년월세지원은 신청 전 준비 목록·사실 확인란 중심으로 쓰고, 주거급여나 임대차 신고서는 해당 공식 서식의 빈칸을 표시한 작성 보조 초안으로 구분한다. 입력하지 않은 성명, 주민번호, 주소, 세대원·소득·재산 사실은 [기재 필요]로 남기고 공식 양식의 실제 제출을 대신한다고 말하지 않는다.",
         "inquiry": "draft에 담당 기관에 보낼 문의 문안을 작성한다. 아직 공고되지 않은 다음 일정과 필요한 증빙을 확인하는 내용으로 한다.",
-        "contract": "주택임대차계약서 초안을 draft에 작성한다. 사용자 입력의 조건을 사용하고 미입력 정보는 [기재 필요]로 남긴다. 임대인·임차인의 성명, 주민번호, 상세 주소, 계좌정보는 묻거나 지어내지 않는다. 목적물, 계약기간, 보증금, 월세, 지급일, 관리비, 인도일, 특약, 서명란을 포함한 바로 복사할 수 있는 초안으로 만든다. 법령 API 원문에 포함된 사항만 법적 근거로 언급하며 법률 유효성을 보장하지 않는다.",
+        "contract": f"요청한 종류({facts.get('contract_terms', {}).get('contract_type') or '임대차'})의 부동산 계약서 작성용 초안을 draft에 작성한다. 매매는 매매대금·계약금·중도금·잔금·인도 및 소유권이전 확인란을, 전세는 보증금·지급시기·인도·반환 및 권리확인란을, 월세는 보증금·월차임·지급일·관리비·인도 및 권리확인란을 포함한다. 사용자 입력 조건만 사용하고 미입력 정보는 [기재 필요]로 둔다. 신원정보·상세 주소·계좌정보를 묻거나 지어내지 말고, 원문에서 확인된 법적 의무와 합의용 제안 문구를 구분한다. 공식 서식 원본과 동일하거나 법률 효력을 보장한다고 말하지 않는다.",
         "recommend": "입력한 예산·지역·가구 조건을 기준으로 공공 임대주택 공고와 지원제도를 추천한다. 조회된 데이터에 있는 것만 말하고, 실거래는 현재 매물로 표현하지 않는다.",
         "listings": "LH 공공임대 모집공고와 국토부 전월세 실거래 참고 자료를 구분해 안내한다. 실거래는 현재 매물이 아니며 계약 가능 매물이라고 표현하지 않는다.",
     }.get(mode, "지원 절차 안내와 필요한 자료를 설명한다.")
@@ -419,7 +422,7 @@ def _prompt(stage, facts, checks, law_refs, law_errors, public_context=""):
 주거지원 공고의 기준·일정은 제공된 [서울시 2026 모집공고] 내용에만 근거한다. 2026 모집은 마감됐으며 2027 일정은 공고 후 안내 상태다. 미래 일정을 추측하지 않는다.
 법령에 관한 설명은 [서울특별시 조례·법제처 API 결과]에 실제로 있는 내용만 사용한다. 조례/API 결과가 없거나 원문 조회가 실패하면 법령 내용을 확인하지 못했다고 표시한다. 모집공고에 없는 조건이나 조항번호를 만들지 않는다.
 공공 공고·실거래 API가 실패했거나 결과가 비어 있으면 결과를 만들어 내지 말고 조회 실패 또는 결과 없음이라고 밝힌다. 국토부 실거래는 과거 신고 계약 사례이므로 현재 매물이라고 부르지 않는다. 예산/지역에 맞는 중개 매물 자체는 이 API 결과에 포함되지 않는 한 찾았다고 주장하지 않는다.
-금액 대조는 제공된 입력 정보의 예비 계산이며 모든 신청 제외 요건·소득·재산·가구 유형·중복수혜를 검사하지 않았으므로 자격 확정이라고 말하지 않는다. 계약서가 아직 없는 사용자에게 임대차 계약을 서둘러 체결하라고 하지 않는다.
+금액 대조는 제공된 입력 정보의 예비 계산이며 모든 신청 제외 요건·소득·재산·가구 유형·중복수혜를 검사하지 않았으므로 자격 확정이라고 말하지 않는다. 계약서가 아직 없는 사용자에게 임대차 계약을 서둘러 체결하라고 하지 않는다. 신청서·계약서는 제출 또는 체결 전에 공식 원본 양식과 실제 합의 내용을 대조하는 작성용 초안이다.
 draft는 선택 기능의 지침에 따라 필요한 경우에만 작성한다. 계약서 초안은 사용자가 입력한 조건만 반영하고 빈 정보는 [기재 필요]로 표시한다. 법령 원문에 없는 권리·의무나 특약을 법정 필수조항처럼 꾸며내지 않는다. 이름·주민등록번호·상세주소·계좌번호를 요구하지 않는다. 답변은 친절하고 간결한 한국어다."""},
         {"role": "user", "content": f"""다음 상황에 대해 선택한 기능의 요청 지침에 따라 안내해 주세요.
 
@@ -442,7 +445,7 @@ draft는 선택 기능의 지침에 따라 필요한 경우에만 작성한다. 
 [공공주거·실거래 API 조회 결과]
 {public_context or '이번 기능에서는 조회하지 않음'}
 
-JSON 결과 필드 summary, next_steps, documents, draft, caution을 채워 주세요. next_steps/documents는 배열입니다. 계약서 초안은 사용자가 입력한 계약 조건과 확인된 법령을 바탕으로 작성하고, 확인하지 못한 세부사항은 [기재 필요]로 남깁니다. 조례 설명은 실제 조회된 원문에 한정하고, 조례와 공고 기준을 구획별로 분리하세요."""},
+JSON 결과 필드 summary, next_steps, documents, draft, caution을 채워 주세요. next_steps/documents는 배열입니다. 신청서와 계약서 초안은 사용자가 입력한 조건만 쓰고 확인하지 못한 세부사항은 [기재 필요]로 남깁니다. 공식 서식과 동일하다고 주장하지 않습니다. 조례 설명은 실제 조회된 원문에 한정하고, 조례와 공고 기준을 구획별로 분리하세요."""},
     ]
 
 
@@ -501,8 +504,10 @@ def answer(body):
     data = json.loads(raw)
     ordinance_sources = [{"type": x["kind"], "title": x["title"], "url": x["url"], "effective": x.get("effective", ""), "excerpt": x.get("excerpt", "")[:2400]} for x in law_refs if "조례" in x["kind"]]
     national_law_sources = [{"type": x["kind"], "title": x["title"], "url": x["url"], "effective": x.get("effective", ""), "excerpt": x.get("excerpt", "")[:1600]} for x in law_refs if "국가 법령" in x["kind"]]
-    announcement_sources = [{"type": "서울시 모집공고", "title": "2026년 서울시 청년월세지원 모집 공고 제2026-1440호", "url": NOTICE_URL, "updated": "2026-04-30"},
-                            {"type": "서울시 사업 안내", "title": "서울시 청년월세지원 안내 (2026년 모집 마감·2027년 공고 예정)", "url": PROGRAM_URL, "updated": "2026-11-12"}]
+    application_type = facts.get("contract_terms", {}).get("application_type", "")
+    youth_context = mode in {"support", "recommend", "listings", "inquiry"} or (mode == "application" and ("청년월세" in application_type or "청년월세" in facts.get("question", "")))
+    announcement_sources = ([{"type": "서울시 모집공고", "title": "2026년 서울시 청년월세지원 모집 공고 제2026-1440호", "url": NOTICE_URL, "updated": "2026-04-30"},
+                             {"type": "서울시 사업 안내", "title": "서울시 청년월세지원 안내 (2026년 모집 마감·2027년 공고 예정)", "url": PROGRAM_URL, "updated": "2026-11-12"}] if youth_context else [])
     sources = announcement_sources + ordinance_sources + national_law_sources + public_sources
     return {"stage": stage, "mode": mode, "answer": data["summary"], "next_steps": data["next_steps"], "documents": data["documents"],
             "draft": data["draft"], "caution": data["caution"], "checks": checks, "sources": sources,
