@@ -1,0 +1,188 @@
+"""5단계: 대회 제출용 API 서버.
+
+실행:  uvicorn app:app --host 0.0.0.0 --port 8000
+호출:  POST /ask  {"question": "장애인 주차요금 감면되나요?"}
+
+채점은 운영진이 마감 직후 1회 실행합니다. 문항당 90초를 넘기거나 오류가 나면 0점입니다.
+그래서 어떤 경우에도 정해진 JSON을 돌려주도록 감쌌습니다.
+"""
+import asyncio
+import logging
+
+from fastapi import FastAPI
+from fastapi.responses import FileResponse, HTMLResponse
+from pydantic import BaseModel
+from fastapi import Request
+import session_state
+import legal_graph
+
+import config
+import rag
+import ui_service
+
+app = FastAPI(title="서울시 조례 Q&A")
+log = logging.getLogger("uvicorn.error")
+_request_semaphore = asyncio.Semaphore(max(1, config.SERVER_MAX_CONCURRENCY))
+
+WEB_INDEX = config.ROOT / "web" / "index.html"
+HOUSING_INDEX = config.ROOT / "web" / "housing.html"
+
+
+class Ask(BaseModel):
+    question: str
+
+
+class UIConversation(Ask):
+    session_id: str | None = None
+
+
+def _valid_question(value):
+    return isinstance(value, str) and 0 < len(value.strip()) <= config.MAX_QUESTION_LENGTH
+
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+    """시민용 질문 화면. 없으면 간단한 안내를 돌려준다."""
+    if WEB_INDEX.exists():
+        return FileResponse(WEB_INDEX)
+    return HTMLResponse("<h1>서울시 조례 Q&A</h1><p>POST /ask 로 질문하세요.</p>")
+
+
+@app.get("/agent", response_class=HTMLResponse)
+def agent_page():
+    return FileResponse(config.ROOT / "web" / "agent.html")
+
+
+@app.get("/housing", response_class=HTMLResponse)
+def housing_page():
+    """주거지원 시연 UI. 대회 채점 화면/API와 독립된 시민용 도구입니다."""
+    return FileResponse(HOUSING_INDEX)
+
+
+@app.post("/ui/housing/ask")
+async def housing_ask(req: Request):
+    """Separate housing-support flow using Solar and live official law API references."""
+    try:
+        body = await req.json()
+        question = body.get("question") if isinstance(body, dict) else None
+        if not _valid_question(question):
+            return {"error": "질문을 입력해 주세요.", "answer": ""}
+        import housing_service
+        async with _request_semaphore:
+            return await asyncio.wait_for(
+                asyncio.to_thread(housing_service.answer, body),
+                timeout=config.ANSWER_TIMEOUT_SEC,
+            )
+    except asyncio.TimeoutError:
+        return {"error": "응답 시간이 길어져 안내를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.", "answer": ""}
+    except Exception as e:  # noqa: BLE001
+        log.warning("housing assistant failed: %r", e)
+        return {"error": "안내 생성 중 오류가 발생했습니다. 공식 공고 원문을 확인해 주세요.", "answer": ""}
+
+
+@app.get("/health")
+def health():
+    index_exists = (config.DATA / f"vectors_{config.CHUNK_UNIT}.npy").exists()
+    key_present = bool(config.UPSTAGE_API_KEY)
+    return {"ok": True, "chunk_unit": config.CHUNK_UNIT, "verify": config.USE_VERIFY,
+            "max_concurrency": config.SERVER_MAX_CONCURRENCY, "api_max_concurrency": config.API_MAX_CONCURRENCY,
+            "api_key_configured": key_present, "vector_index_exists": index_exists,
+            "law_api_configured": bool(config.LAW_OC), "law_api_test_key": config.LAW_OC == "test",
+            "startup_requirements_present": bool(key_present and index_exists)}
+
+
+@app.post("/ask")
+async def ask(req: Request):
+    """Always return exactly four competition fields, including on malformed JSON."""
+    try:
+        # Accept direct unit-test invocation as well as real ASGI Request objects.
+        body = req.model_dump() if isinstance(req, Ask) else await req.json()
+        question = body.get("question") if isinstance(body, dict) else None
+        if not _valid_question(question):
+            return dict(rag.UNKNOWN)
+        async with _request_semaphore:
+            return await asyncio.wait_for(asyncio.to_thread(rag.answer, question.strip()),
+                                       timeout=config.ANSWER_TIMEOUT_SEC)
+    except Exception as e:  # noqa: BLE001  시간 초과·API 오류 모두 '확인 불가'로 응답
+        log.warning("ask failed: %r", e)
+        return dict(rag.UNKNOWN)
+
+
+@app.post("/ui/ask")
+async def ui_ask(req: Ask):
+    """시민용 화면 전용 응답. 대회 채점용 `/ask` 계약과 분리합니다."""
+    try:
+        async with _request_semaphore:
+            return await asyncio.wait_for(asyncio.to_thread(ui_service.answer, req.question),
+                                       timeout=config.ANSWER_TIMEOUT_SEC)
+    except Exception as e:  # noqa: BLE001
+        log.warning("ui ask failed: %r", e)
+        return {
+            **dict(rag.UNKNOWN),
+            "needs_clarification": False,
+            "clarification_options": [],
+            "verification_status": "unavailable",
+            "unknown_reason": "server_error",
+            "evidence": [],
+            "checklist": [],
+            "follow_up_questions": [],
+            "searched_laws": [],
+        }
+
+
+@app.post("/ui/session")
+async def ui_session(req: UIConversation):
+    """Ephemeral multi-turn citizen UI; no changes to stateless competition endpoint."""
+    session_id, history = session_state.get_or_create(req.session_id)
+    if not _valid_question(req.question):
+        return {**dict(rag.UNKNOWN), "session_id":session_id,"rewritten_question":"",
+                "verification_status":"unavailable","evidence":[],"checklist":[],"follow_up_questions":[],
+                "searched_laws":[], "needs_clarification":False,"clarification_options":[]}
+    rewritten=session_state.rewrite_question(req.question, history)
+    async with _request_semaphore:
+        try:
+            result=await asyncio.wait_for(asyncio.to_thread(ui_service.answer, rewritten),
+                                          timeout=config.ANSWER_TIMEOUT_SEC)
+        except Exception as e:
+            log.warning("ui session failed: %r",e)
+            result={**dict(rag.UNKNOWN),"verification_status":"unavailable","evidence":[],
+                    "checklist":[],"follow_up_questions":[],"searched_laws":[],
+                    "needs_clarification":False,"clarification_options":[]}
+    session_state.record(session_id, req.question, result)
+    return {**result,"session_id":session_id,"rewritten_question":rewritten}
+
+
+@app.post("/ui/agent")
+async def ui_agent(req: UIConversation):
+    """Optional model-mediated evidence-tool trace, isolated from the official /ask."""
+    session_id, history = session_state.get_or_create(req.session_id)
+    rewritten = session_state.rewrite_question(req.question, history)
+    if not _valid_question(rewritten):
+        return {**dict(rag.UNKNOWN),"session_id":session_id,"tool_mode":"invalid","tool_trace":[]}
+    import tool_agent
+    async with _request_semaphore:
+        try:
+            trace=await asyncio.wait_for(asyncio.to_thread(tool_agent.run_tools, rewritten),
+                                         timeout=min(config.ANSWER_TIMEOUT_SEC,45))
+        except Exception as e:
+            log.warning("agent tool error: %r",e)
+            trace={"mode":"unavailable","trace":[]}
+        try:
+            result=await asyncio.wait_for(asyncio.to_thread(ui_service.answer, rewritten),
+                                          timeout=config.ANSWER_TIMEOUT_SEC)
+        except Exception as e:
+            log.warning("agent answer error: %r",e)
+            result=dict(rag.UNKNOWN)
+    session_state.record(session_id, req.question, result)
+    try:
+        graph = legal_graph.related(result.get("citation", []))
+    except Exception as e:
+        log.warning("agent evidence graph failed: %r",e)
+        graph = {"nodes":[],"edges":[]}
+    return {**result,"session_id":session_id,"rewritten_question":rewritten,
+            "tool_mode":trace["mode"],"tool_trace":trace["trace"],"graph":graph}
+
+
+@app.delete("/ui/session/{session_id}")
+def ui_session_delete(session_id: str):
+    return {"cleared":session_state.clear(session_id)}

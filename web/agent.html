@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서울시 법령 Q&A · 기술 검증 콘솔</title>
+<style>
+:root{font-family:system-ui,'Malgun Gothic',sans-serif;background:#f4f6fa;color:#182b41}body{max-width:1100px;margin:auto;padding:24px}
+h1{font-size:1.7rem;margin-bottom:5px}p{color:#506075;line-height:1.55}.lead{margin-bottom:26px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.card{background:white;border:1px solid #dce4ee;border-radius:14px;padding:20px;box-shadow:0 1px 6px #0001}
+.full{grid-column:span 2}h2{font-size:1.04rem;margin:0 0 12px}.eyebrow{font-size:.8rem;color:#506075;font-weight:700;text-transform:uppercase}
+input{width:100%;min-height:45px;border-radius:8px;border:1px solid #c5d2e2;padding:10px 12px;font:inherit;box-sizing:border-box}
+button{border:0;border-radius:8px;background:#274c77;color:white;padding:11px 16px;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:wait}
+.answer{white-space:pre-wrap;line-height:1.85;font-size:1rem}.pill{display:inline-block;background:#e7edf6;border-radius:50px;padding:4px 10px;margin:3px;font-size:.78rem}
+.entry{padding:12px 0;border-top:1px solid #ebeff4;overflow-wrap:anywhere}.entry:first-of-type{border-top:0}
+small{color:#5b6c7e}a{color:#205b94}.help{font-size:.81rem}.empty{color:#6d7884}
+@media(max-width:690px){.grid{display:block}.card{margin:0 0 15px}.full{grid-column:auto}}
+</style></head><body>
+<a href="/">← 시민용 화면</a><h1>법령 Q&A 기술 검증 콘솔</h1>
+<p class="lead">2026-10-01 시행 서울특별시 조례 6종을 기준으로 검색 도구 호출과 실제 인용 근거를 확인합니다. 실시간 공식 API 점검은 기본 비활성화이며, 도구 호출 실패 시 로컬 검색으로 전환됩니다. 모델 내부의 비공개 추론은 표시하지 않습니다.</p>
+<div class="card full"><form id="f"><label for="q" class="eyebrow">질문</label><input id="q" maxlength="2000" value="장애인 할인과 다둥이 할인을 함께 받을 수 있나요?" required><p><button id="go" type="submit">검색 및 답변 검증</button><button type="button" id="new" style="background:#66788c;margin-left:8px">대화 초기화</button></p></form><small id="time">대기 중</small></div>
+<div class="grid" style="margin-top:18px">
+ <div class="card"><h2>근거 기반 답변</h2><div id="ans" class="answer empty">질문을 보내면 표시됩니다.</div><div id="metadata"></div></div>
+ <div class="card"><h2>근거 조항 · 원문 링크</h2><div id="cit" class="empty">선택된 근거 없음</div></div>
+ <div class="card"><h2>도구 호출 내역</h2><p class="help">호출한 도구와 반환된 데이터만 표시합니다. 법령 내용은 고정 데이터셋에 기반합니다.</p><div id="tools" class="empty">실행 전</div></div>
+ <div class="card"><h2>조항 관계 지도</h2><p class="help">인용 조항이 명시적으로 참조한 같은 조례의 다른 조항·별표입니다. 추가 조항은 정답 근거로 자동 반영되지 않습니다.</p><div id="graph" class="empty">관계 분석 전</div></div>
+</div>
+<script>
+'use strict';let sessionId=null;
+const $=id=>document.getElementById(id);
+function item(container,title,body,link){const x=document.createElement('div');x.className='entry';const a=document.createElement('strong');a.textContent=title;x.append(a);if(body){const t=document.createElement('p');t.textContent=body;x.append(t);}if(link&&link.startsWith('https://www.law.go.kr/')){const l=document.createElement('a');l.href=link;l.target='_blank';l.rel='noopener noreferrer';l.textContent='법제처 원문 열기';x.append(l)}container.append(x)}
+$('f').addEventListener('submit',async e=>{e.preventDefault();const q=$('q').value.trim();if(!q)return;$('go').disabled=true;$('time').textContent='검증 중';const t=performance.now();
+try{const r=await fetch('/ui/agent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,session_id:sessionId})});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();sessionId=d.session_id||null;
+$('ans').textContent=d.answer||'응답 없음';$('ans').className='answer';$('metadata').replaceChildren();item($('metadata'),'검증 상태',d.verification_status||'정보 없음');if(d.rewritten_question&&d.rewritten_question!==q)item($('metadata'),'문맥 재작성',d.rewritten_question);
+$('cit').replaceChildren();(d.evidence||[]).forEach(x=>item($('cit'),x.citation,x.excerpt,x.source_url));if(!(d.evidence||[]).length)$('cit').textContent='인용 없음 (확인 불가)';
+$('tools').replaceChildren();item($('tools'),'실행 모드',d.tool_mode||'미확인');(d.tool_trace||[]).forEach((x,i)=>item($('tools'),`${i+1}. ${x.tool}`,JSON.stringify(x.arguments||{})+'\n결과 '+(Array.isArray(x.result)?x.result.length+'건':JSON.stringify(x.result||{}).slice(0,650))));
+$('graph').replaceChildren();(d.graph?.edges||[]).forEach(x=>item($('graph'),x.relation,x.from+' → '+x.to));if(!(d.graph?.edges||[]).length)$('graph').textContent='해당 근거에서 직접 확인된 연계 조항 없음';
+$('time').textContent=`응답 ${((performance.now()-t)/1000).toFixed(1)}초 · 근거 ${d.citation?.length||0}개 · Tool ${d.tool_trace?.length||0}회`;
+}catch(err){$('time').textContent='오류: '+err.message;}finally{$('go').disabled=false;}});
+$('new').onclick=()=>{const old=sessionId;sessionId=null;if(old)fetch('/ui/session/'+encodeURIComponent(old),{method:'DELETE'}).catch(()=>{});$('time').textContent='대화 초기화 완료';}
+</script></body></html>
